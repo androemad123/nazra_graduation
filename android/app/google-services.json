@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "676969158220",
+    "project_id": "nazra-graduation",
+    "storage_bucket": "nazra-graduation.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:676969158220:android:cd2e143f58f0b30529c6e9",
+        "android_client_info": {
+          "package_name": "com.example.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyRqBTSkr61ywrjYmGN407nUnqyZmJLkM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

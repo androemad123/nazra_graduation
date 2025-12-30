@@ -1,3 +1,5 @@
+import 'package:app/app/provider/language_provider.dart';
+import 'package:app/app/provider/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -42,8 +44,8 @@ class NazraApp extends StatefulWidget {
 class _NazraAppState extends State<NazraApp> {
   @override
   Widget build(BuildContext context) {
-   // final themeProvider = context.watch<ThemeProvider>();
-    //final languageProvider = context.watch<LanguageProvider>();
+    final themeProvider = context.watch<ThemeProvider>();
+    final languageProvider = context.watch<LanguageProvider>();
 
     return ScreenUtilInit(
       designSize: const Size(375, 812),
@@ -55,12 +57,12 @@ class _NazraAppState extends State<NazraApp> {
           debugShowCheckedModeBanner: false,
 
           // ✅ Theme
-          // theme: ThemeManager.getLightTheme(languageProvider.languageCode),
-          // darkTheme: ThemeManager.getDarkTheme(languageProvider.languageCode),
-          // themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          theme: ThemeManager.getLightTheme(languageProvider.languageCode),
+          darkTheme: ThemeManager.getDarkTheme(languageProvider.languageCode),
+          themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
 
           // ✅ Localization
-          locale: Locale("en"),
+          locale: Locale(languageProvider.languageCode),
           localizationsDelegates: const [
             S.delegate,
             GlobalMaterialLocalizations.delegate,

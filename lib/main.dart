@@ -15,14 +15,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'app/nazra_app.dart';
+import 'app/provider/language_provider.dart';
+import 'app/provider/theme_provider.dart';
+import 'firebase_options.dart';
 
 // Bloc imports
 
 @pragma('vm:entry-point')
-// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-//   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-//   print("Handling a background message: ${message.messageId}");
-// }
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  print("Handling a background message: ${message.messageId}");
+}
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -32,12 +35,12 @@ main() async {
   await ScreenUtil.ensureScreenSize();
 
   // ✅ Initialize Firebase
-  // await Firebase.initializeApp(
-  //    options: DefaultFirebaseOptions.currentPlatform,
-  // );
+  await Firebase.initializeApp(
+     options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // ✅ FCM Setup
-  // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   final messaging = FirebaseMessaging.instance;
 
@@ -99,14 +102,19 @@ main() async {
   runApp(
     MultiProvider(
       providers: [
-
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(isDarkMode),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => LanguageProvider(languageCode),
+        ),
       ],
-      child: MultiBlocProvider(
-        providers: [
-
-        ],
+      // child: MultiBlocProvider(
+      //   providers: [
+      //
+      //   ],
         child: NazraApp.getInstance(appRouter, navigatorKey, initialRoute),
-      ),
+ //     ),
     ),
   );
 }
