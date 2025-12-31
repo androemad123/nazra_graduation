@@ -38,6 +38,8 @@ class _LoginScreenState extends State<LoginScreen> {
       //     password: _passwordCtrl.text.trim(),
       //   ),
       // );
+            Navigator.pushReplacementNamed(context, Routes.homeScreenState);
+
     }
   }
 

@@ -3,6 +3,10 @@ import 'package:app/routing/routes.dart';
 import 'package:flutter/material.dart';
 
 import '../presentations/auth/login/login_screen.dart';
+import '../presentations/forget_password/forget_password_screen.dart';
+import '../presentations/forget_password/new_password_screen.dart';
+import '../presentations/forget_password/otp_screen.dart';
+import '../presentations/home/home_screen_state.dart';
 import '../presentations/onboarding/onboarding_screen.dart';
 
 class AppRouter {
@@ -13,9 +17,17 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const OnboardingScreen());
       case Routes.loginRoute:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
-
-      case Routes.loginRoute:
+      case Routes.signUpRoute:
         return MaterialPageRoute(builder: (_) => const SignupScreen());
+      case Routes.forgetPasswordRoute:
+        return MaterialPageRoute(builder: (_) => const ForgetPasswordScreen());
+      case Routes.otpScreenRoute:
+        return MaterialPageRoute(builder: (_) => const OtpScreen());
+      case Routes.newPasswordRoute:
+        return MaterialPageRoute(builder: (_) => const NewPasswordScreen());
+      case Routes.homeScreenState:
+        return MaterialPageRoute(builder: (_) => const HomeScreenState());
+
       default:
         return null;
     }
