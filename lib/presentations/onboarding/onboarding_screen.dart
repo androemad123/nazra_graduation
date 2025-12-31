@@ -133,7 +133,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           fontSize: FontSize.s18,
                           color: Theme.of(context).colorScheme.onPrimary,
                         ),
-                        onPressed: () {},
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          Routes.signUpRoute,
+                        ),
                         backGroundColor: Colors.transparent,
                         borderRadius: 10,
                       ),
