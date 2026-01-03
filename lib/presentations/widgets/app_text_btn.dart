@@ -50,7 +50,7 @@ class AppTextBtn extends StatelessWidget {
           padding: WidgetStateProperty.all<EdgeInsets>(
             EdgeInsets.symmetric(
               horizontal: horizontalPadding ?? 12.w,
-              vertical: verticalPadding ?? 14.h,
+              vertical: verticalPadding ?? 10.h,
             ),
           ),
 

@@ -1,3 +1,6 @@
+import 'package:app/presentations/community/community_screen.dart';
+import 'package:app/presentations/complains/complains_screen.dart';
+import 'package:app/presentations/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../generated/l10n.dart' show S;
@@ -22,9 +25,9 @@ class _HomeScreenStateState extends State<HomeScreenState> {
 
   final List<Widget> screens = [
     Home(),
-    Placeholder(),
-    Placeholder(),
-    Placeholder()
+    ComplainsScreen(),
+    CommunityScreen(),
+    ProfileScreen()
   ];
 
   @override

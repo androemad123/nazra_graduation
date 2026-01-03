@@ -1,6 +1,7 @@
 import 'package:app/routing/app_router.dart';
 import 'package:app/routing/routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Firebase
-import 'package:firebase_core/firebase_core.dart';
 
 import 'app/nazra_app.dart';
 import 'app/provider/language_provider.dart';

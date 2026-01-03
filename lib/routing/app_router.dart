@@ -1,4 +1,5 @@
 import 'package:app/presentations/auth/signUp/signup_screen.dart';
+import 'package:app/presentations/complains/add_complaint_screen.dart';
 import 'package:app/routing/routes.dart';
 import 'package:flutter/material.dart';
 
@@ -27,6 +28,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const NewPasswordScreen());
       case Routes.homeScreenState:
         return MaterialPageRoute(builder: (_) => const HomeScreenState());
+      case Routes.addComplaintScreen:
+        return MaterialPageRoute(builder: (_) => const AddComplaintScreen());
 
       default:
         return null;

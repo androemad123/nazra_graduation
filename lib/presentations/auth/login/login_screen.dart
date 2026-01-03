@@ -133,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           // Password field
                           AppTextField(
                             hintText: S.of(context).passwordHint,
-                            isPassword: true,
+                            isPassword: true ,
                             controller: _passwordCtrl,
                             prefixIcon: Icons.lock_outline,
                             validator: (val) {
@@ -184,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           // Login button
                           AppTextBtn(
-                            buttonText:   S.of(context).loggingIn,
+                            buttonText:   S.of(context).login,
                             textStyle: semiBoldStyle(
                               fontSize: 18.sp,
                               color: Colors.white,
