@@ -120,6 +120,11 @@
   "aiConfidence": "AI Confidence",
   "details": "Details",
   "votes": "votes",
-  "tapToViewDetails": "Tap to view details"
+  "tapToViewDetails": "Tap to view details",
 
+  "homeSubtitle": "Your report makes the difference",
+  "addNewComplaint": "Add New Complaint",
+  "uploadPhotoSubtitle": "Upload a photo of the issue easily",
+  "trackYourComplaint": "Track Your Complaint",
+  "trackComplaintSubtitle": "Follow the status of your report step by step"
 }

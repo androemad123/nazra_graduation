@@ -23,11 +23,11 @@ class _HomeScreenStateState extends State<HomeScreenState> {
     });
   }
 
-  final List<Widget> screens = [
-    Home(),
-    ComplainsScreen(),
-    CommunityScreen(),
-    ProfileScreen()
+  late final List<Widget> screens = [
+    Home(onNavigateToComplaints: () => _onItemTapped(1)),
+    const ComplainsScreen(),
+    const CommunityScreen(),
+    const ProfileScreen(),
   ];
 
   @override

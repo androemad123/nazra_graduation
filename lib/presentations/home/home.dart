@@ -1,12 +1,17 @@
 import 'package:app/presentations/home/rotating_banner.dart';
 import 'package:flutter/material.dart';
 
+import '../../app/bloc/notification/notification_bloc.dart';
 import '../../routing/routes.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../resources/color_manager.dart';
 import '../resources/styles_manager.dart';
+import '../../generated/l10n.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  final VoidCallback onNavigateToComplaints;
+  const Home({super.key, required this.onNavigateToComplaints});
 
   @override
   State<Home> createState() => _HomeState();
@@ -16,6 +21,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    context.read<NotificationBloc>().add(LoadNotifications());
   }
 
   @override
@@ -39,12 +45,12 @@ class _HomeState extends State<Home> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Welcome!',
+                      Text('${S.of(context).welcome}!',
                           style: semiBoldStyle(
                               fontSize: 25, color: Color(0xff2E2E2E))),
                       SizedBox(height: 4),
                       Text(
-                        'Your report makes the difference',
+                        S.of(context).homeSubtitle,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[600],
@@ -58,7 +64,24 @@ class _HomeState extends State<Home> {
                       color: Colors.grey[200],
                       shape: BoxShape.circle,
                     ),
-
+                    child: BlocBuilder<NotificationBloc, NotificationState>(
+                      builder: (context, state) {
+                        int unreadCount = 0;
+                        if (state is NotificationLoaded) {
+                          unreadCount = state.unreadCount;
+                        }
+                        return IconButton(
+                            onPressed: () {
+                              Navigator.pushNamed(
+                                  context, Routes.notificationsScreen);
+                            },
+                            icon: Badge(
+                              isLabelVisible: unreadCount > 0,
+                              label: Text('$unreadCount'),
+                              child: Icon(Icons.notifications_none_outlined),
+                            ));
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -71,8 +94,8 @@ class _HomeState extends State<Home> {
               // Add New Complaint Card
               _buildFeatureCard(
                 icon: Icons.camera_alt_outlined,
-                title: 'Add New Complaint',
-                subtitle: 'Upload a photo of the issue easily',
+                title: S.of(context).addNewComplaint,
+                subtitle: S.of(context).uploadPhotoSubtitle,
                 onTap: () {
                   Navigator.pushNamed(context, Routes.addComplaintScreen);
                   print('Add New Complaint tapped');
@@ -83,12 +106,9 @@ class _HomeState extends State<Home> {
               // Track Your Complaint Card
               _buildFeatureCard(
                 icon: Icons.access_time,
-                title: 'Track Your Complaint',
-                subtitle: 'Follow the status of your report step by step',
-                onTap: () {
-                  // Handle navigation to Track Your Complaint screen
-                  print('Track Your Complaint tapped');
-                },
+                title: S.of(context).trackYourComplaint,
+                subtitle: S.of(context).trackComplaintSubtitle,
+                onTap: widget.onNavigateToComplaints,
               ),
             ],
           ),
@@ -130,11 +150,11 @@ class _HomeState extends State<Home> {
                   children: [
                     Text(title,
                         style:
-                            semiBoldStyle(fontSize: 18, color: Colors.black87)),
+                        semiBoldStyle(fontSize: 18, color: Colors.black87)),
                     SizedBox(height: 4),
                     Text(subtitle,
                         style:
-                            regularStyle(fontSize: 14, color: Colors.black38)),
+                        regularStyle(fontSize: 14, color: Colors.black38)),
                   ],
                 ),
               ),

@@ -1,9 +1,12 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
-
+import '../../../app/bloc/auth/auth_bloc.dart';
+import '../../../app/bloc/auth/auth_event.dart';
+import '../../../app/bloc/auth/auth_state.dart';
 import '../../../app/provider/theme_provider.dart';
 import '../../../generated/l10n.dart';
 import '../../../routing/routes.dart';
@@ -32,14 +35,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _onLoginPressed(BuildContext context) {
     if (_formKey.currentState?.validate() ?? false) {
-      // context.read<AuthBloc>().add(
-      //   AuthLoginRequested(
-      //     email: _emailCtrl.text.trim(),
-      //     password: _passwordCtrl.text.trim(),
-      //   ),
-      // );
-            Navigator.pushReplacementNamed(context, Routes.homeScreenState);
-
+      context.read<AuthBloc>().add(
+        AuthLoginRequested(
+          email: _emailCtrl.text.trim(),
+          password: _passwordCtrl.text.trim(),
+        ),
+      );
     }
   }
 
@@ -53,6 +54,28 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
+
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state.status == AuthStatus.failure && state.error != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.error!),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        } else if (state.status == AuthStatus.authenticated) {
+          // Check user role and navigate accordingly
+          final userRole = state.user?.role ?? 'user';
+          if (userRole == 'admin') {
+            Navigator.of(context).pushReplacementNamed(Routes.adminHomeScreen);
+          } else {
+            Navigator.of(context).pushReplacementNamed(Routes.homeScreenState);
+          }
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state.status == AuthStatus.loading;
 
         return Scaffold(
           body: Stack(
@@ -133,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           // Password field
                           AppTextField(
                             hintText: S.of(context).passwordHint,
-                            isPassword: true ,
+                            isPassword: true,
                             controller: _passwordCtrl,
                             prefixIcon: Icons.lock_outline,
                             validator: (val) {
@@ -184,13 +207,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           // Login button
                           AppTextBtn(
-                            buttonText:   S.of(context).login,
+                            buttonText: isLoading ? S.of(context).loggingIn : S.of(context).loginButton,
                             textStyle: semiBoldStyle(
                               fontSize: 18.sp,
                               color: Colors.white,
                             ),
-                            onPressed:
-                                 () => _onLoginPressed(context),
+                            onPressed: isLoading
+                                ? (){}
+                                : () => _onLoginPressed(context),
                           ),
                           SizedBox(height: 30.h),
 
@@ -261,10 +285,17 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
 
               // Loading overlay
+              if (isLoading)
+                Container(
+                  color: Colors.black26,
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
             ],
-
-        )
-
+          ),
+        );
+      },
     );
   }
 }

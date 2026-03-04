@@ -1199,6 +1199,56 @@ class S {
       args: [],
     );
   }
+
+  /// `Your report makes the difference`
+  String get homeSubtitle {
+    return Intl.message(
+      'Your report makes the difference',
+      name: 'homeSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add New Complaint`
+  String get addNewComplaint {
+    return Intl.message(
+      'Add New Complaint',
+      name: 'addNewComplaint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Upload a photo of the issue easily`
+  String get uploadPhotoSubtitle {
+    return Intl.message(
+      'Upload a photo of the issue easily',
+      name: 'uploadPhotoSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Track Your Complaint`
+  String get trackYourComplaint {
+    return Intl.message(
+      'Track Your Complaint',
+      name: 'trackYourComplaint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Follow the status of your report step by step`
+  String get trackComplaintSubtitle {
+    return Intl.message(
+      'Follow the status of your report step by step',
+      name: 'trackComplaintSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

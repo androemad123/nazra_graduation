@@ -7,13 +7,30 @@ import 'activity_log_repository.dart';
 import 'notification_repository.dart';
 import '../models/notification_model.dart';
 
-/// Repository for managing community issues
+/// Repository for managing community issues in Firestore.
+///
+/// Issues are user-submitted problem reports within a specific community.
+/// They support voting, escalation, and resolution workflows.
+///
+/// Collaborates with:
+/// - [NotificationRepository]: sends notifications to issue owners on votes and status changes.
+/// - [ActivityLogRepository]: logs voting and creation actions to the user's activity feed.
 class IssueRepository {
+  /// Firestore instance for all database operations.
   final FirebaseFirestore _firestore;
+
+  /// Firebase Auth instance for identifying the current user.
   final FirebaseAuth _auth;
+
+  /// Used to send in-app notifications on vote, escalation, and resolution.
   final NotificationRepository _notificationRepository;
+
+  /// Used to log user actions (voting, creation) to the activity feed.
   final ActivityLogRepository _activityLogRepository;
 
+  /// Creates the repository with optional injectable dependencies.
+  ///
+  /// Defaults to singleton instances if not provided.
   IssueRepository({
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
@@ -24,9 +41,18 @@ class IssueRepository {
         _notificationRepository = notificationRepository ?? NotificationRepository(),
         _activityLogRepository = activityLogRepository ?? ActivityLogRepository();
 
+  /// Convenience reference to the `issues` Firestore collection.
   CollectionReference get _issues => _firestore.collection('issues');
 
-  /// Create a new issue in a community
+  /// Creates a new issue document in Firestore.
+  ///
+  /// Normalises the ML payload and optionally uses its suggested category
+  /// if it overrides the one provided by the user.
+  ///
+  /// Logs a complaint-type activity to the activity feed after creation.
+  ///
+  /// Returns the Firestore document ID of the newly created issue.
+  /// Throws on authentication failure or Firestore error.
   Future<String> createIssue({
     required String communityId,
     required String title,
@@ -43,10 +69,12 @@ class IssueRepository {
         throw Exception('User not authenticated');
       }
 
+      // Normalise the ML payload into `{is_issue, data}` format
       final normalizedAnalysis = _normalizeMlPayload(mlAnalysisResult);
       final Map<String, dynamic> aiDetails =
           normalizedAnalysis?['data'] as Map<String, dynamic>? ?? {};
-      // Use ML-suggested category if available, otherwise use provided category
+
+      // Prefer ML-suggested category if available and non-empty
       final finalCategory = (aiDetails['category'] as String?)?.isNotEmpty == true
           ? aiDetails['category'] as String
           : category;
@@ -60,10 +88,11 @@ class IssueRepository {
         'description': description,
         'imageUrls': imageUrls,
         'category': finalCategory,
-        'votes': [],
+        'votes': [], // No votes yet
         'status': 'pending',
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+        // Only include optional fields when they have values
         if (normalizedAnalysis != null) 'aiAnalysis': normalizedAnalysis,
         if (location != null) 'location': GeoPoint(location.latitude, location.longitude),
         if (address != null) 'address': address,
@@ -71,7 +100,7 @@ class IssueRepository {
 
       await docRef.set(issueData);
 
-      // Log activity
+      // Log this as a complaint-type activity in the user's activity feed
       await _activityLogRepository.logActivity(
         title: 'Complaint filed: "$title"',
         description: description,
@@ -86,6 +115,9 @@ class IssueRepository {
     }
   }
 
+  /// Normalises the raw ML API response to a consistent Firestore-safe structure.
+  ///
+  /// Returns `{ "is_issue": bool, "data": { ...ai fields } }` or null if input is null.
   Map<String, dynamic>? _normalizeMlPayload(Map<String, dynamic>? payload) {
     if (payload == null) return null;
 
@@ -98,7 +130,10 @@ class IssueRepository {
     };
   }
 
-  /// Get all issues for a specific community
+  /// Returns a real-time stream of all issues for a specific [communityId].
+  ///
+  /// Results are ordered by creation date (newest first).
+  /// Each snapshot is mapped to a list of [Issue] model objects.
   Stream<List<Issue>> watchCommunityIssues(String communityId) {
     return _issues
         .where('communityId', isEqualTo: communityId)
@@ -114,7 +149,9 @@ class IssueRepository {
     });
   }
 
-  /// Get a single issue by ID
+  /// Returns a real-time stream that watches a single issue by [issueId].
+  ///
+  /// Emits null if the document does not exist.
   Stream<Issue?> watchIssue(String issueId) {
     return _issues.doc(issueId).snapshots().map((snapshot) {
       if (!snapshot.exists) return null;
@@ -123,7 +160,13 @@ class IssueRepository {
     });
   }
 
-  /// Vote on an issue
+  /// Adds the current user's upvote to an issue atomically.
+  ///
+  /// Uses a Firestore transaction to safely add the user's UID to the `votes` array,
+  /// preventing duplicate votes. Also logs the vote activity and sends a notification
+  /// to the issue owner (best-effort, outside the transaction).
+  ///
+  /// Throws on authentication failure or Firestore error.
   Future<void> voteIssue(String issueId) async {
     try {
       final user = _auth.currentUser;
@@ -135,6 +178,7 @@ class IssueRepository {
       String? issueOwnerId;
       String? issueTitle;
 
+      // Atomically add the vote — prevents race conditions
       await _firestore.runTransaction((tx) async {
         final snap = await tx.get(docRef);
         if (!snap.exists) throw Exception('Issue not found');
@@ -151,7 +195,7 @@ class IssueRepository {
             'updatedAt': FieldValue.serverTimestamp(),
           });
 
-          // Log activity for upvote
+          // Log the vote action to the user's activity feed (inside transaction scope is fine)
           _activityLogRepository.logActivity(
             title: 'Upvoted: "$issueTitle"',
             description: 'You supported this issue.',
@@ -161,7 +205,7 @@ class IssueRepository {
         }
       });
 
-      // Send notification after transaction (best effort)
+      // Send a notification to the issue owner (best-effort — outside the transaction)
       if (issueOwnerId != null && issueTitle != null) {
         await _notificationRepository.sendNotification(
           recipientId: issueOwnerId!,
@@ -178,7 +222,9 @@ class IssueRepository {
     }
   }
 
-  /// Remove vote from an issue
+  /// Removes the current user's vote from an issue.
+  ///
+  /// Uses Firestore's [FieldValue.arrayRemove] for a safe, atomic array update.
   Future<void> unvoteIssue(String issueId) async {
     try {
       final user = _auth.currentUser;
@@ -186,6 +232,7 @@ class IssueRepository {
         throw Exception('User not authenticated');
       }
 
+      // arrayRemove is safe to call even if the UID isn't in the array
       await _issues.doc(issueId).update({
         'votes': FieldValue.arrayRemove([user.uid]),
         'updatedAt': FieldValue.serverTimestamp(),
@@ -196,7 +243,12 @@ class IssueRepository {
     }
   }
 
-  /// Escalate an issue (typically done by owner or when vote threshold is reached)
+  /// Marks an issue as 'escalated' in Firestore and notifies its owner.
+  ///
+  /// Typically triggered when a vote threshold is reached or a moderator
+  /// decides the issue needs official attention.
+  ///
+  /// [note] is an optional message explaining the escalation reason.
   Future<void> escalateIssue(String issueId, {String? note}) async {
     try {
       await _issues.doc(issueId).update({
@@ -205,7 +257,7 @@ class IssueRepository {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      // Fetch issue to get owner
+      // Fetch the issue to get the owner's UID and title for the notification
       final docSnapshot = await _issues.doc(issueId).get();
       if (docSnapshot.exists) {
         final data = docSnapshot.data() as Map<String, dynamic>;
@@ -229,7 +281,9 @@ class IssueRepository {
     }
   }
 
-  /// Resolve an issue
+  /// Marks an issue as 'resolved' in Firestore and notifies its owner.
+  ///
+  /// [note] is an optional message describing how the issue was resolved.
   Future<void> resolveIssue(String issueId, {String? note}) async {
     try {
       await _issues.doc(issueId).update({
@@ -238,7 +292,7 @@ class IssueRepository {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      // Fetch issue to get owner
+      // Fetch the issue to notify the owner
       final docSnapshot = await _issues.doc(issueId).get();
       if (docSnapshot.exists) {
         final data = docSnapshot.data() as Map<String, dynamic>;
@@ -261,7 +315,10 @@ class IssueRepository {
     }
   }
 
-  /// Delete an issue (only by creator or community owner)
+  /// Permanently deletes an issue document from Firestore.
+  ///
+  /// Should only be called by the issue creator or a community owner.
+  /// Authorization is not enforced here — ensure callers check permissions first.
   Future<void> deleteIssue(String issueId) async {
     try {
       await _issues.doc(issueId).delete();

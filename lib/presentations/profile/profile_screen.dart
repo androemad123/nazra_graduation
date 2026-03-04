@@ -2,7 +2,10 @@ import 'package:app/presentations/profile/settings_screen.dart';
 import 'package:app/presentations/profile/widget/profile_stat_card.dart';
 import 'package:app/presentations/profile/widget/profile_tile.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../app/bloc/auth/auth_bloc.dart';
+import '../../../app/bloc/auth/auth_event.dart';
+import '../../../app/bloc/auth/auth_state.dart';
 import '../../../routing/routes.dart';
 import '../resources/color_manager.dart';
 import '../resources/styles_manager.dart';
@@ -18,12 +21,29 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   void _onLogoutPressed(BuildContext context) {
-  Navigator.pushReplacementNamed(context, Routes.loginRoute);
+    context.read<AuthBloc>().add(AuthLogoutRequested());
   }
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
+
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state.status == AuthStatus.unauthenticated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(s.loggedOutSuccessfully)),
+          );
+          Navigator.pushReplacementNamed(context, Routes.loginRoute);
+        } else if (state.status == AuthStatus.failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.error ?? s.logoutFailed)),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state.status == AuthStatus.loading;
+        final user = state.user;
 
         return Scaffold(
           body: SafeArea(
@@ -45,12 +65,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      s.defaultUserName,
+                      user?.displayName ?? s.defaultUserName,
                       style: semiBoldStyle(fontSize: 18, color: ColorManager.darkGray),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      s.defaultUserEmail,
+                      user?.email ?? s.defaultUserEmail,
                       style: regularStyle(fontSize: 14, color: ColorManager.gray),
                     ),
                     const SizedBox(height: 28),
@@ -121,8 +141,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     ProfileTile(
                       icon: Icons.logout,
-                      title:  s.logout,
-                      onTap: ()=> _onLogoutPressed(context),
+                      title: isLoading ? s.loggingOut : s.logout,
+                      onTap: isLoading ? null : () => _onLogoutPressed(context),
                       iconColor: ColorManager.brown,
                     ),
                   ],
@@ -131,5 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         );
-      }
+      },
+    );
+  }
 }

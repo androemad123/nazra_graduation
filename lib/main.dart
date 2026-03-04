@@ -1,9 +1,7 @@
 import 'package:app/routing/app_router.dart';
 import 'package:app/routing/routes.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,9 +12,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Firebase
 
+import 'app/bloc/auth/auth_bloc.dart';
+import 'app/bloc/location_bloc/location_bloc.dart';
+import 'app/bloc/notification/notification_bloc.dart';
 import 'app/nazra_app.dart';
 import 'app/provider/language_provider.dart';
 import 'app/provider/theme_provider.dart';
+import 'app/repositories/auth_repository.dart';
+import 'app/repositories/notification_repository.dart';
+import 'app/services/location_service.dart';
 import 'firebase_options.dart';
 
 // Bloc imports
@@ -34,12 +38,12 @@ main() async {
   await dotenv.load(fileName: ".env");
   await ScreenUtil.ensureScreenSize();
 
-  // ✅ Initialize Firebase
+  //  Initialize Firebase
   await Firebase.initializeApp(
      options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // ✅ FCM Setup
+  //  FCM Setup
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   final messaging = FirebaseMessaging.instance;
@@ -87,17 +91,26 @@ main() async {
 
   // Initialize services
   final appRouter = AppRouter();
+  final authRepository = AuthRepository();
+  final notificationRepository = NotificationRepository();
 
   // Determine Initial Route
-  //final user = await authRepository.currentUser;
+  final user = await authRepository.currentUser;
   String initialRoute = Routes.onboardingRoute;
 
-  // final cloudDNS = dotenv.env['CLOUDINARY_CLOUD_DNS'];
-  // if (cloudDNS == null || cloudDNS.isEmpty) {
-  //   throw StateError(
-  //     'CLOUDINARY_CLOUD_DNS is not set. Please add it to your .env file.',
-  //   );
-  // }
+  if (user != null) {
+    if (user.role == 'admin') {
+      initialRoute = Routes.adminHomeScreen;
+    } else {
+      initialRoute = Routes.homeScreenState;
+    }
+  }
+  final cloudDNS = dotenv.env['CLOUDINARY_CLOUD_DNS'];
+  if (cloudDNS == null || cloudDNS.isEmpty) {
+    throw StateError(
+      'CLOUDINARY_CLOUD_DNS is not set. Please add it to your .env file.',
+    );
+  }
 
   runApp(
     MultiProvider(
@@ -109,12 +122,16 @@ main() async {
           create: (_) => LanguageProvider(languageCode),
         ),
       ],
-      // child: MultiBlocProvider(
-      //   providers: [
-      //
-      //   ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => LocationBloc(LocationService())),
+          BlocProvider(
+              create: (_) => AuthBloc(authRepository: authRepository)),
+          BlocProvider(
+              create: (_) => NotificationBloc(notificationRepository: notificationRepository)),
+        ],
         child: NazraApp.getInstance(appRouter, navigatorKey, initialRoute),
- //     ),
+      ),
     ),
   );
 }

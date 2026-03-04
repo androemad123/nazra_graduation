@@ -27,6 +27,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "accountSettings":
             MessageLookupByLibrary.simpleMessage("إعدادات الحساب"),
         "activityLog": MessageLookupByLibrary.simpleMessage("سجل النشاطات"),
+        "addNewComplaint":
+            MessageLookupByLibrary.simpleMessage("إضافة شكوى جديدة"),
         "ago": MessageLookupByLibrary.simpleMessage("منذ"),
         "aiConfidence":
             MessageLookupByLibrary.simpleMessage("ثقة الذكاء الاصطناعي"),
@@ -80,6 +82,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "help": MessageLookupByLibrary.simpleMessage("مساعدة"),
         "high": MessageLookupByLibrary.simpleMessage("عالية"),
         "home": MessageLookupByLibrary.simpleMessage("الرئيسية"),
+        "homeSubtitle":
+            MessageLookupByLibrary.simpleMessage("إبلاغك يصنع الفرق"),
         "inProgress": MessageLookupByLibrary.simpleMessage("قيد التنفيذ"),
         "issueDetails": MessageLookupByLibrary.simpleMessage("تفاصيل المشكلة"),
         "issueEscalated": MessageLookupByLibrary.simpleMessage(
@@ -176,6 +180,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "topCategories": MessageLookupByLibrary.simpleMessage("أهم الفئات"),
         "totalComplaints":
             MessageLookupByLibrary.simpleMessage("إجمالي الشكاوى"),
+        "trackComplaintSubtitle":
+            MessageLookupByLibrary.simpleMessage("تابع حالة بلاغك خطوة بخطوة"),
+        "trackYourComplaint":
+            MessageLookupByLibrary.simpleMessage("تتبع شكواك"),
+        "uploadPhotoSubtitle":
+            MessageLookupByLibrary.simpleMessage("ارفع صورة للمشكلة بسهولة"),
         "userNotLoggedIn":
             MessageLookupByLibrary.simpleMessage("المستخدم غير مسجل الدخول"),
         "voteForEscalation":

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-
 import '../../app/bloc/community/community_bloc.dart';
 import '../../app/bloc/community/community_event.dart';
 import '../../app/bloc/issue/issue_bloc.dart';
@@ -348,6 +347,7 @@ class CommunityDetailsScreen extends StatelessWidget {
                     builder: (_) => BlocProvider.value(
                       value: context.read<IssueBloc>(),
                       child: AddIssueScreen(
+                        communityId: communityId,
                       ),
                     ),
                   ),

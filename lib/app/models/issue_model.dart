@@ -1,22 +1,61 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Model for community issues
-/// Issues are simpler than complaints - focused on community voting and escalation
+/// Data model for a community issue report (a problem reported within a community).
+///
+/// Issues are similar to complaints but are community-scoped and support
+/// a democratic voting mechanism. When enough votes are accumulated, an issue
+/// can be **escalated** to municipal authorities.
+///
+/// Stored in the `issues` Firestore collection.
+///
+/// Status lifecycle:
+///   pending → escalated → resolved
 class Issue {
+  /// Firestore document ID for this issue.
   final String id;
+
+  /// Firestore ID of the community this issue belongs to.
   final String communityId;
+
+  /// Firebase UID of the user who submitted the issue.
   final String userId;
+
+  /// A short descriptive title for the issue.
   final String title;
+
+  /// A detailed description of the problem.
   final String description;
+
+  /// Cloudinary secure URLs for photos of the issue.
   final List<String> imageUrls;
+
+  /// Category of the issue (e.g., 'Roads', 'Sanitation').
+  /// May be overridden by the ML analysis result.
   final String category;
-  final List<String> votes; // List of user IDs who voted
-  final String status; // pending, escalated, resolved
+
+  /// List of Firebase UIDs of users who have upvoted this issue.
+  /// Use [voteCount] to get the total and [hasUserVoted] to check a specific user.
+  final List<String> votes;
+
+  /// Current status of the issue. Possible values: 'pending', 'escalated', 'resolved'.
+  final String status;
+
+  /// An optional note added when the issue is escalated or resolved.
   final String? escalationNote;
+
+  /// Structured result from the ML API analysis. May be null for manually categorised issues.
   final IssueAiAnalysis? aiAnalysis;
+
+  /// Optional GPS coordinates for the issue location as a Firestore [GeoPoint].
   final GeoPoint? location;
+
+  /// Optional human-readable address string for the issue location.
   final String? address;
+
+  /// Firestore-compatible creation timestamp.
   final Timestamp createdAt;
+
+  /// Firestore-compatible last-updated timestamp.
   final Timestamp updatedAt;
 
   Issue({
@@ -37,19 +76,29 @@ class Issue {
     required this.updatedAt,
   });
 
+  /// Convenience getter: returns the total number of upvotes on this issue.
   int get voteCount => votes.length;
 
+  /// Returns true if the user with [userId] has voted on this issue.
   bool hasUserVoted(String userId) => votes.contains(userId);
 
+  /// Creates an [Issue] from a Firestore document.
+  ///
+  /// [map] is the raw `data()` from the snapshot. [docId] is the document ID.
+  ///
+  /// Defensively parses [imageUrls] and [votes] to handle nulls or mixed-type lists.
+  /// Falls back to the ML-suggested category if the stored category is empty.
   factory Issue.fromMap(Map<String, dynamic> map, String docId) {
     final aiAnalysisMap = map['aiAnalysis'] as Map<String, dynamic>?;
     final aiAnalysis = IssueAiAnalysis.maybeFromMap(aiAnalysisMap);
     
+    // Parse image URLs safely — filter to strings only
     final rawImageUrls = map['imageUrls'];
     final parsedImages = rawImageUrls is List
         ? rawImageUrls.whereType<String>().toList()
         : <String>[];
 
+    // Parse votes safely — must be a list of user UID strings
     final rawVotes = map['votes'];
     final parsedVotes = rawVotes is List
         ? rawVotes.whereType<String>().toList()
@@ -62,6 +111,7 @@ class Issue {
       title: map['title'] ?? '',
       description: map['description'] ?? '',
       imageUrls: parsedImages,
+      // Use AI-suggested category if available; otherwise fall back to stored/provided category
       category: map['category'] ?? (aiAnalysis?.category ?? ''),
       votes: parsedVotes,
       status: map['status'] ?? 'pending',
@@ -74,6 +124,10 @@ class Issue {
     );
   }
 
+  /// Serialises this [Issue] to a Firestore-compatible map.
+  ///
+  /// Optional fields ([escalationNote], [aiAnalysis], [location], [address])
+  /// are only included in the map if they are non-null.
   Map<String, dynamic> toMap() {
     return {
       'communityId': communityId,
@@ -93,6 +147,10 @@ class Issue {
     };
   }
 
+  /// Creates a modified copy of this issue with selective field overrides.
+  ///
+  /// [id], [communityId], [userId], [aiAnalysis], and [createdAt] are immutable
+  /// and not overridable via [copyWith].
   Issue copyWith({
     String? title,
     String? description,
@@ -124,8 +182,15 @@ class Issue {
   }
 }
 
+/// Structured result of the ML API analysis for a community issue's image.
+///
+/// Similar to [ComplaintAiAnalysis] but tailored to the fields returned
+/// for community issues. Primarily used to auto-set the [Issue.category].
 class IssueAiAnalysis {
+  /// Whether the AI classified the image as a genuine civic issue.
   final bool isIssue;
+
+  /// The full AI analysis payload. Stored as an unmodifiable map.
   final Map<String, dynamic> data;
 
   IssueAiAnalysis({
@@ -135,15 +200,26 @@ class IssueAiAnalysis {
           Map<String, dynamic>.from(data),
         );
 
+  /// AI-suggested category for the issue (e.g., 'Roads', 'Sanitation').
   String? get category => data['category'] as String?;
+
+  /// AI-suggested priority level.
   String? get priority => data['priority'] as String?;
+
+  /// AI-generated plain-text description of what was seen in the image.
   String? get description => data['description'] as String?;
+
+  /// Specific issue sub-type identified by the AI (e.g., 'pothole').
   String? get issueType => data['issue_type'] as String?;
+
+  /// Confidence rating for the AI's analysis ('high', 'medium', 'low').
   String? get confidenceLevel => data['confidence_level'] as String?;
 
+  /// Uppercased confidence label for display. Falls back to 'UNKNOWN'.
   String get confidenceLabel =>
       confidenceLevel?.toUpperCase() ?? 'UNKNOWN';
 
+  /// Serialises this [IssueAiAnalysis] to a Firestore-compatible map.
   Map<String, dynamic> toMap() {
     return {
       'is_issue': isIssue,
@@ -151,6 +227,9 @@ class IssueAiAnalysis {
     };
   }
 
+  /// Creates an [IssueAiAnalysis] from a Firestore nested map.
+  ///
+  /// Returns null if [map] is null (e.g., for issues without AI analysis).
   static IssueAiAnalysis? maybeFromMap(Map<String, dynamic>? map) {
     if (map == null) return null;
     final rawData = map['data'];
@@ -162,4 +241,3 @@ class IssueAiAnalysis {
     );
   }
 }
-

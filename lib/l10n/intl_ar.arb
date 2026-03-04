@@ -121,7 +121,11 @@
   "aiConfidence": "ثقة الذكاء الاصطناعي",
   "details": "التفاصيل",
   "votes": "تصويت",
-  "tapToViewDetails": "اضغط لعرض التفاصيل"
+  "tapToViewDetails": "اضغط لعرض التفاصيل",
 
-
+  "homeSubtitle": "إبلاغك يصنع الفرق",
+  "addNewComplaint": "إضافة شكوى جديدة",
+  "uploadPhotoSubtitle": "ارفع صورة للمشكلة بسهولة",
+  "trackYourComplaint": "تتبع شكواك",
+  "trackComplaintSubtitle": "تابع حالة بلاغك خطوة بخطوة"
 }

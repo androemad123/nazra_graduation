@@ -27,6 +27,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "accountSettings":
             MessageLookupByLibrary.simpleMessage("Account Settings"),
         "activityLog": MessageLookupByLibrary.simpleMessage("Activity Log"),
+        "addNewComplaint":
+            MessageLookupByLibrary.simpleMessage("Add New Complaint"),
         "ago": MessageLookupByLibrary.simpleMessage("ago"),
         "aiConfidence": MessageLookupByLibrary.simpleMessage("AI Confidence"),
         "all": MessageLookupByLibrary.simpleMessage("All"),
@@ -84,6 +86,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "help": MessageLookupByLibrary.simpleMessage("Help"),
         "high": MessageLookupByLibrary.simpleMessage("High"),
         "home": MessageLookupByLibrary.simpleMessage("Home"),
+        "homeSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Your report makes the difference"),
         "inProgress": MessageLookupByLibrary.simpleMessage("In Progress"),
         "issueDetails": MessageLookupByLibrary.simpleMessage("Issue Details"),
         "issueEscalated": MessageLookupByLibrary.simpleMessage(
@@ -177,6 +181,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "topCategories": MessageLookupByLibrary.simpleMessage("Top Categories"),
         "totalComplaints":
             MessageLookupByLibrary.simpleMessage("Total Complaints"),
+        "trackComplaintSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Follow the status of your report step by step"),
+        "trackYourComplaint":
+            MessageLookupByLibrary.simpleMessage("Track Your Complaint"),
+        "uploadPhotoSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Upload a photo of the issue easily"),
         "userNotLoggedIn":
             MessageLookupByLibrary.simpleMessage("User not logged in"),
         "voteForEscalation":

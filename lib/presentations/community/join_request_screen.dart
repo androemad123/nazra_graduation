@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app/repositories/community_repository.dart';
+import '../../app/repositories/user_repository.dart';
+import '../../app/models/app_user.dart';
 
 class JoinRequestsScreen extends StatelessWidget {
   final String communityId;
@@ -9,7 +11,8 @@ class JoinRequestsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final repo = CommunityRepository();
-
+    final userRepo = UserRepository();
+    
     return Scaffold(
       appBar: AppBar(title: const Text('Join Requests')),
       body: StreamBuilder<QuerySnapshot>(
@@ -26,10 +29,17 @@ class JoinRequestsScreen extends StatelessWidget {
               final data = docs[i].data() as Map<String, dynamic>;
               final uid = data['userId'] as String;
               
-
+              return FutureBuilder<AppUser?>(
+                future: userRepo.getUser(uid),
+                builder: (context, userSnap) {
+                  final user = userSnap.data;
+                  final displayName = user?.displayName!.isNotEmpty == true
+                      ? user!.displayName 
+                      : (user?.email ?? uid);
+                  
                   return ListTile(
-                    title: Text("name"),
-                    subtitle: Text( ''),
+                    title: Text(displayName!),
+                    subtitle: Text(user?.email ?? ''),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -45,7 +55,8 @@ class JoinRequestsScreen extends StatelessWidget {
                     ),
                   );
                 },
-
+              );
+            },
           );
         },
       ),

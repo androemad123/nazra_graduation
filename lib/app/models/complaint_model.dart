@@ -1,21 +1,65 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Data model representing a citizen complaint submitted to the platform.
+///
+/// Complaints are stored in the `complaints` Firestore collection.
+/// Each complaint goes through an AI analysis pipeline (ML API + Cloudinary)
+/// before being stored, which determines its [status] and [priority].
+///
+/// Status lifecycle:
+///   pending → in_progress → resolved
+///   pending → not_issue (if the AI determines the photo is not a valid issue)
+///
+/// Priority values: 'emergency', 'high', 'medium', 'low' (set by AI or default 'medium')
 class Complaint {
+  /// Firestore document ID for this complaint (also stored in the `id` field).
   final String id;
+
+  /// Firebase UID of the user who submitted the complaint.
   final String userId;
+
+  /// List of Cloudinary secure URLs for images attached to the complaint.
   final List<String> imageUrls;
+
+  /// Category label for the type of problem (e.g., 'Garbage & Waste', 'Road Damage').
   final String category;
+
+  /// User-provided description of the issue.
   final String description;
+
+  /// Geographic coordinates of the reported issue stored as a Firestore [GeoPoint].
   final GeoPoint location;
+
+  /// Human-readable address string resolved via reverse geocoding.
   final String address;
-  final String status; // pending, in_progress, resolved, not_issue
-  final String priority; // emergency, high, medium, low
+
+  /// Current processing status of the complaint.
+  /// Possible values: 'pending', 'in_progress', 'resolved', 'not_issue'.
+  final String status;
+
+  /// AI-derived priority level.
+  /// Possible values: 'emergency', 'high', 'medium', 'low'.
+  final String priority;
+
+  /// Firebase UID of the officer assigned to handle this complaint (if any).
   final String? assignedOfficerId;
+
+  /// Firestore ID of the community this complaint is associated with (if any).
   final String? communityId;
+
+  /// Structured result of the ML API image analysis. May be null for legacy records.
   final ComplaintAiAnalysis? aiAnalysis;
+
+  /// Optional note added when the complaint is resolved.
   final String? resolutionNote;
+
+  /// Number of "likes"/upvotes received from other users. Defaults to 0.
   final int likes;
+
+  /// Firestore-compatible creation timestamp.
   final Timestamp createdAt;
+
+  /// Firestore-compatible last-updated timestamp.
   final Timestamp updatedAt;
 
   Complaint({
@@ -37,14 +81,24 @@ class Complaint {
     required this.updatedAt,
   });
 
+  /// Creates a [Complaint] from a Firestore document.
+  ///
+  /// [map] is the raw `data()` from the snapshot. [docId] is the Firestore document ID.
+  ///
+  /// Handles legacy documents that stored a single `imageUrl` field instead of `imageUrls`.
+  /// Parses the nested `aiAnalysis` map via [ComplaintAiAnalysis.maybeFromMap].
+  /// Falls back gracefully for missing fields using safe defaults.
   factory Complaint.fromMap(Map<String, dynamic> map, String docId) {
     final aiAnalysisMap = map['aiAnalysis'] as Map<String, dynamic>?;
     final aiAnalysis = ComplaintAiAnalysis.maybeFromMap(aiAnalysisMap);
+
+    // Parse image URLs — handles both array and legacy single-URL formats
     final rawImageUrls = map['imageUrls'];
     final parsedImages = rawImageUrls is List
         ? rawImageUrls.whereType<String>().toList()
         : <String>[];
 
+    // Backward compatibility: if imageUrls is empty, check for legacy imageUrl field
     final fallbackImage = map['imageUrl'];
     if (parsedImages.isEmpty && fallbackImage is String) {
       parsedImages.add(fallbackImage);
@@ -72,6 +126,9 @@ class Complaint {
     );
   }
 
+  /// Serialises this [Complaint] to a Firestore-compatible map.
+  ///
+  /// [aiAnalysis] is only included if non-null.
   Map<String, dynamic> toMap() {
     return {
       'userId': userId,
@@ -92,6 +149,10 @@ class Complaint {
     };
   }
 
+  /// Safely parses a location value that may be a native [GeoPoint]
+  /// or a plain map `{latitude, longitude}` (e.g., from older schema versions).
+  ///
+  /// Returns `GeoPoint(0, 0)` as a safe default if the value is unrecognised.
   static GeoPoint _parseLocation(dynamic rawLocation) {
     if (rawLocation is GeoPoint) return rawLocation;
     if (rawLocation is Map<String, dynamic>) {
@@ -104,7 +165,10 @@ class Complaint {
     return const GeoPoint(0, 0);
   }
 
-  /// 🧩 Dummy data for UI testing
+  /// 🧩 Dummy data for UI testing and development.
+  ///
+  /// Provides three sample complaints covering garbage, road damage, and vegetation issues.
+  /// Used to preview UI components without a live Firestore connection.
   static List<Complaint> dummyData = [
     Complaint(
       id: '1',
@@ -193,8 +257,19 @@ class Complaint {
   ];
 }
 
+/// Structured result of the ML API analysis for a complaint's submitted image.
+///
+/// Wraps the raw JSON response from the backend in a typed Dart class,
+/// exposing individual fields as computed getters.
+///
+/// The underlying [data] map is made unmodifiable at construction time
+/// to prevent accidental mutation.
 class ComplaintAiAnalysis {
+  /// Whether the AI classified the submitted image as a genuine civic issue.
+  /// If false, the complaint status is set to 'not_issue'.
   final bool isIssue;
+
+  /// The full AI analysis payload from the ML backend. Stored as an unmodifiable map.
   final Map<String, dynamic> data;
 
   ComplaintAiAnalysis({
@@ -204,22 +279,43 @@ class ComplaintAiAnalysis {
           Map<String, dynamic>.from(data),
         );
 
+  /// Explanation from the AI of why this is (or isn't) considered a valid issue.
   String? get reason => data['reason'] as String?;
+
+  /// AI-generated plain-text description of what was detected in the image.
   String? get description => data['description'] as String?;
+
+  /// AI-suggested priority level ('emergency', 'high', 'medium', 'low').
   String? get priority => data['priority'] as String?;
+
+  /// Specific issue sub-type identified by the AI (e.g., 'garbage_overflow').
   String? get issueType => data['issue_type'] as String?;
+
+  /// The government sector responsible for handling this type of issue.
   String? get responsibleSector => data['responsible_sector'] as String?;
+
+  /// AI's confidence rating for its analysis ('high', 'medium', 'low').
   String? get confidenceLevel => data['confidence_level'] as String?;
+
+  /// Whether the AI flagged this as requiring immediate intervention.
   bool? get immediateActionRequired =>
       data['immediate_action_required'] as bool?;
+
+  /// Whether the AI identified a safety hazard in the image.
   bool? get safetyHazard => data['safety_hazard'] as bool?;
+
+  /// Observable location details visible in the image (e.g., 'Near a school').
   String? get visibleLocationDetails =>
       data['visible_location_details'] as String?;
+
+  /// AI estimate of how complex the repair will be (e.g., 'simple', 'complex').
   String? get repairComplexity => data['repair_complexity'] as String?;
 
+  /// Uppercased [confidenceLevel] for display (e.g., 'HIGH'). Falls back to 'UNKNOWN'.
   String get confidenceLabel =>
       confidenceLevel?.toUpperCase() ?? 'UNKNOWN';
 
+  /// Serialises this [ComplaintAiAnalysis] to a Firestore-compatible map.
   Map<String, dynamic> toMap() {
     return {
       'is_issue': isIssue,
@@ -227,6 +323,10 @@ class ComplaintAiAnalysis {
     };
   }
 
+  /// Creates a [ComplaintAiAnalysis] from a Firestore nested map.
+  ///
+  /// Returns null if [map] itself is null (e.g., for older complaints without AI analysis).
+  /// Handles cases where the `data` field is missing or not a map.
   static ComplaintAiAnalysis? maybeFromMap(Map<String, dynamic>? map) {
     if (map == null) return null;
     final rawData = map['data'];

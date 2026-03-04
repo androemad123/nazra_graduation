@@ -9,7 +9,7 @@ class Routes{
   static const String newPasswordRoute ="/newPasswordRoute";
   static const String homeScreenState ="/homeScreenState";
   static const String addComplaintScreen ="/addComplaintScreen";
-
+  static const String complainsScreen ="/ComplainsScreen";
   static const String notificationsScreen ="/notificationsScreen";
   static const String adminHomeScreen ="/adminHomeScreen";
 
