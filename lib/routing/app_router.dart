@@ -2,6 +2,7 @@ import 'package:app/presentations/complains/complains_screen.dart';
 import 'package:app/routing/routes.dart';
 import 'package:flutter/material.dart';
 
+import '../presentations/admin/home/admin_home_base_screen.dart';
 import '../presentations/auth/login/login_screen.dart';
 import '../presentations/auth/signUp/signup_screen.dart';
 import '../presentations/complains/add_complaint_screen.dart';
@@ -36,6 +37,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const NotificationScreen());
       case Routes.complainsScreen:
         return MaterialPageRoute(builder: (_) => const ComplainsScreen());
+      case Routes.adminHomeScreen:
+        return MaterialPageRoute(builder: (_) => const AdminHomeBaseScreen());
       default:
         return null;
     }
