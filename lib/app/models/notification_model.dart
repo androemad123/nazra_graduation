@@ -15,6 +15,7 @@ enum NotificationType {
   statusChange,
   joinRequest,
   requestAccepted,
+  chatMessage,
   general,
 }
 

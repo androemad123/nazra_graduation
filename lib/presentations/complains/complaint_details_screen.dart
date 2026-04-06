@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../app/models/complaint_model.dart';
 import '../resources/color_manager.dart';
 import '../resources/styles_manager.dart';
+import '../../generated/l10n.dart';
 import 'package:intl/intl.dart';
 
 class ComplaintDetailsScreen extends StatelessWidget {
@@ -13,27 +14,28 @@ class ComplaintDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     // Define your step data
     final steps = [
       {
-        'title': 'NEW',
+        'title': s.statusNew,
         'date': '22 Sep, 10:30 PM',
-        'description': 'Report received',
+        'description': s.reportReceived,
       },
       {
-        'title': 'Under review',
+        'title': s.statusUnderReview,
         'date': '25 Sep, 08:30 AM',
-        'description': 'The report has been reviewed and classified',
+        'description': s.reportReviewedClassified,
       },
       {
-        'title': 'In Progress',
+        'title': s.inProgress,
         'date': '27 Sep, 10:00 AM',
-        'description': 'Our team has started working on solving the problem',
+        'description': s.teamStartedSolving,
       },
       {
-        'title': 'Fixed',
+        'title': s.fixed,
         'date': '27 Sep, 03:00 PM',
-        'description': 'Your reported problem is now fixed',
+        'description': s.issueResolved,
       },
     ];
 
@@ -60,7 +62,7 @@ class ComplaintDetailsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Details',
+          s.details,
           style: semiBoldStyle(fontSize: 18.sp, color: ColorManager.black),
         ),
         centerTitle: true,
@@ -106,12 +108,12 @@ class ComplaintDetailsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildInfoRow('Report number', "#RE_${complaint.id}"),
+                          _buildInfoRow(s.reportNumber, "#RE_${complaint.id}"),
                           SizedBox(height: 6.h),
-                          _buildInfoRow('Category', complaint.category),
+                          _buildInfoRow(s.category, complaint.category),
                           SizedBox(height: 6.h),
                           _buildInfoRow(
-                            'Submission date',
+                            s.submissionDate,
                             // Example: format your Timestamp to readable date
                             DateFormat('d MMM yyyy')
                                 .format(complaint.createdAt.toDate()),
@@ -128,7 +130,7 @@ class ComplaintDetailsScreen extends StatelessWidget {
 
             /// 📊 Report Status
             Text(
-              "Report status",
+              s.reportStatus,
               style:
               boldStyle(fontSize: 16.sp, color: ColorManager.darkBrown),
             ),

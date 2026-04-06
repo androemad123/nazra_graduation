@@ -14,6 +14,7 @@ enum ComplaintStatus { initial, loading, success, failure }
 /// Holds the list of complaints, the current loading status, and any error message.
 ///
 /// Use [copyWith] to produce updated copies without mutating the original state.
+
 class ComplaintState extends Equatable {
   /// Current status of the complaints data operation.
   final ComplaintStatus status;

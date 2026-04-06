@@ -5,6 +5,7 @@ import '../../app/bloc/complaint/complaint_bloc.dart';
 import '../../app/bloc/complaint/complaint_event.dart';
 import '../../app/bloc/complaint/complaint_state.dart';
 import '../../app/repositories/complaint_repository.dart';
+import '../../generated/l10n.dart';
 import '../widgets/complaint_card.dart';
 import 'complaint_details_screen.dart';
 
@@ -18,9 +19,13 @@ class ComplainsScreen extends StatelessWidget {
         ..add(LoadUserComplaints()),
       child: Scaffold(
         backgroundColor: const Color(0xFFF9F9F9),
-        appBar: AppBar(title: const Text("My Complaints"),automaticallyImplyLeading: false,),
+        appBar: AppBar(
+          title: Text(S.of(context).myComplaints),
+          automaticallyImplyLeading: false,
+        ),
         body: BlocBuilder<ComplaintBloc, ComplaintState>(
           builder: (context, state) {
+            final s = S.of(context);
             if (state.status == ComplaintStatus.loading) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -31,7 +36,7 @@ class ComplainsScreen extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      state.error ?? 'Failed to load complaints',
+                      state.error ?? s.failedToLoadComplaints,
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.redAccent),
                     ),
@@ -40,7 +45,7 @@ class ComplainsScreen extends StatelessWidget {
                       onPressed: () {
                         context.read<ComplaintBloc>().add(LoadUserComplaints());
                       },
-                      child: const Text('Retry'),
+                      child: Text(s.retry),
                     ),
                   ],
                 ),
@@ -55,14 +60,14 @@ class ComplainsScreen extends StatelessWidget {
                     const Icon(Icons.inbox_outlined, size: 64, color: Colors.grey),
                     const SizedBox(height: 12),
                     Text(
-                      'No complaints yet.',
+                      s.noComplaintsYet,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Submit an issue to see it listed here.',
+                    Text(
+                      s.submitIssueHint,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey),
+                      style: const TextStyle(color: Colors.grey),
                     ),
                   ],
                 ),

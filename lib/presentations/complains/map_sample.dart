@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../generated/l10n.dart';
 import '../../app/bloc/location_bloc/location_bloc.dart';
 import '../../app/services/location_service.dart';
 
@@ -24,7 +25,7 @@ Widget _buildLocationWidget(BuildContext context, LocationLoaded state) {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Current location",
+                  Text(S.of(context).currentLocation,
                       style: TextStyle(
                           fontSize: 14, color: Colors.black87)),
                   Text(
@@ -40,7 +41,7 @@ Widget _buildLocationWidget(BuildContext context, LocationLoaded state) {
               onPressed: () {
                 context.read<LocationBloc>().add(FetchLocation());
               },
-              child: Text("Change",
+              child: Text(S.of(context).change,
                   style: TextStyle(
                       color: Colors.brown.shade400,
                       fontWeight: FontWeight.w500)),
@@ -105,7 +106,7 @@ class MapSample extends StatelessWidget {
           } else if (state is LocationLoaded) {
             return _buildLocationWidget(context, state);
           } else if (state is LocationError) {
-            return Text('Error: ${state.message}');
+            return Text('${S.of(context).error}: ${state.message}');
           }
           return const SizedBox.shrink();
         },
@@ -121,7 +122,7 @@ class MapSample extends StatelessWidget {
             } else if (state is LocationLoaded) {
               return _buildLocationWidget(context, state);
             } else if (state is LocationError) {
-              return Text('Error: ${state.message}');
+              return Text('${S.of(context).error}: ${state.message}');
             }
             return const SizedBox.shrink();
           },

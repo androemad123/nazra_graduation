@@ -18,6 +18,8 @@ import 'add_issue_screen.dart';
 import 'issue_details_screen.dart';
 import 'join_request_screen.dart';
 import 'community_members_screen.dart';
+import '../chat/chat_screen.dart';
+import '../chat/admin_chat_list_screen.dart';
 
 class CommunityDetailsScreen extends StatelessWidget {
   final String communityId;
@@ -54,6 +56,7 @@ class CommunityDetailsScreen extends StatelessWidget {
             final community = snap.data!;
             final isOwner = community.ownerId == currentUserId;
             final isMember = community.members.contains(currentUserId);
+            final canChatOwner = currentUserId.isNotEmpty && !isOwner;
 
             /// 🔐 Load issues ONLY if user is a member
             if (isMember) {
@@ -96,22 +99,131 @@ class CommunityDetailsScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            if (isOwner)
-                              IconButton(
-                                icon: const Icon(Icons.people_alt_rounded),
-                                color: ColorManager.brown,
-                                tooltip: 'Manage join requests',
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => JoinRequestsScreen(
-                                        communityId: community.id,
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (isOwner)
+                                  IconButton(
+                                    icon: const Icon(Icons.people_alt_rounded),
+                                    color: ColorManager.brown,
+                                    tooltip: 'Manage join requests',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => JoinRequestsScreen(
+                                            communityId: community.id,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                if (isOwner)
+                                  IconButton(
+                                    icon: const Icon(Icons.chat),
+                                    color: ColorManager.brown,
+                                    tooltip: 'View Chats',
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => const AdminChatListScreen(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                PopupMenuButton<String>(
+                                  onSelected: (value) async {
+                                    if (value == 'chat_owner') {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => ChatScreen(peerUserId: community.ownerId),
+                                        ),
+                                      );
+                                      return;
+                                    }
+
+                                    if (value == 'leave') {
+                                      final ok = await showDialog<bool>(
+                                        context: context,
+                                        builder: (ctx) => AlertDialog(
+                                          title: const Text('Leave community?'),
+                                          content: const Text('You will lose access to community issues.'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(ctx, false),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(ctx, true),
+                                              child: const Text('Leave'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                      if (ok != true) return;
+
+                                      await communityRepo.leaveCommunity(community.id, currentUserId);
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Left community')),
+                                        );
+                                      }
+                                      return;
+                                    }
+
+                                    if (value == 'delete') {
+                                      final ok = await showDialog<bool>(
+                                        context: context,
+                                        builder: (ctx) => AlertDialog(
+                                          title: const Text('Delete community?'),
+                                          content: const Text('This will permanently delete the community and its issues.'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(ctx, false),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(ctx, true),
+                                              child: const Text('Delete'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                      if (ok != true) return;
+
+                                      await communityRepo.deleteCommunity(community.id);
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Community deleted')),
+                                        );
+                                        Navigator.pop(context);
+                                      }
+                                      return;
+                                    }
+                                  },
+                                  itemBuilder: (ctx) => [
+                                    if (canChatOwner)
+                                      const PopupMenuItem(
+                                        value: 'chat_owner',
+                                        child: Text('Chat with owner'),
                                       ),
-                                    ),
-                                  );
-                                },
-                              ),
+                                    if (isMember && !isOwner)
+                                      const PopupMenuItem(
+                                        value: 'leave',
+                                        child: Text('Leave community'),
+                                      ),
+                                    if (isOwner)
+                                      const PopupMenuItem(
+                                        value: 'delete',
+                                        child: Text('Delete community'),
+                                      ),
+                                  ],
+                                  icon: const Icon(Icons.more_vert),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -205,6 +317,29 @@ class CommunityDetailsScreen extends StatelessWidget {
                                   style: semiBoldStyle(
                                     fontSize: 14,
                                     color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            if (isMember && !isOwner)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 10),
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => ChatScreen(peerUserId: community.ownerId),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.chat_bubble_outline),
+                                  label: const Text('Chat owner'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: ColorManager.brown,
+                                    side: BorderSide(color: ColorManager.brown),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
                                   ),
                                 ),
                               ),

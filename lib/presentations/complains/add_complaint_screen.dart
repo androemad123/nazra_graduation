@@ -9,6 +9,7 @@ import '../../app/services/cloudinary_service.dart';
 import '../../app/services/ml_api_service.dart';
 import '../../app/repositories/complaint_repository.dart';
 import '../../app/bloc/location_bloc/location_bloc.dart';
+import '../../generated/l10n.dart';
 import '../resources/color_manager.dart';
 import '../resources/styles_manager.dart';
 import '../widgets/app_text_btn.dart';
@@ -117,16 +118,9 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
   // ── Submit ─────────────────────────────────────────────────────────────────
 
   Future<void> _handleSubmit() async {
-    if (_selectedProblemType == null || _selectedProblemType!.isEmpty) {
-      _showValidationSnackBar('Please select a problem type');
-      return;
-    }
-    if (_descriptionController.text.trim().isEmpty) {
-      _showValidationSnackBar('Please enter a description');
-      return;
-    }
+    final s = S.of(context);
     if (_imageFiles.isEmpty) {
-      _showValidationSnackBar('Please add at least one photo');
+      _showValidationSnackBar(s.pleaseAddPhoto);
       return;
     }
 
@@ -134,7 +128,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
     final locationState = locationBloc.state;
     if (locationState is! LocationLoaded) {
       locationBloc.add(FetchLocation());
-      _showValidationSnackBar('Please wait for location to load');
+      _showValidationSnackBar(s.pleaseWaitLocationLoad);
       return;
     }
 
@@ -153,7 +147,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
         mlApiService: _mlApiService,
         complaintRepository: _complaintRepository,
         description: _descriptionController.text.trim(),
-        category: _selectedProblemType!,
+        category: _selectedProblemType ?? 'Other',
         position: locationState.position,
         address: locationState.address,
         onSuccess: () {
@@ -169,9 +163,10 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add a complaint'),
+        title: Text(s.addComplaintTitle),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
@@ -186,7 +181,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Problem type ──────────────────────────────────────────────
-            Text('Type of problem',
+            Text('${s.typeOfProblem} (optional)',
                 style: regularStyle(fontSize: 16, color: Colors.black87)),
             SizedBox(height: 8.h),
             Container(
@@ -197,7 +192,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
-                  hint: Text('Select the type of problem',
+                  hint: Text(s.selectProblemType,
                       style: regularStyle(
                           fontSize: 16, color: Colors.grey.shade600)),
                   value: _selectedProblemType,
@@ -221,7 +216,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
             SizedBox(height: 20.h),
 
             // ── Description ───────────────────────────────────────────────
-            Text('Problem description',
+            Text('${s.problemDescription} (optional)',
                 style: regularStyle(fontSize: 16, color: Colors.black87)),
             SizedBox(height: 8.h),
             Container(
@@ -240,7 +235,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                 decoration: InputDecoration(
                   counterText: '',
                   border: InputBorder.none,
-                  hintText: 'Write a description of the problem...',
+                  hintText: s.writeProblemDescription,
                   hintStyle:
                       regularStyle(fontSize: 14, color: Colors.black38),
                 ),
@@ -249,7 +244,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
             SizedBox(height: 20.h),
 
             // ── Photos ────────────────────────────────────────────────────
-            Text('Add photos',
+            Text(s.addPhotos,
                 style: regularStyle(fontSize: 16, color: Colors.black87)),
             SizedBox(height: 8.h),
             GestureDetector(
@@ -277,11 +272,11 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
                                 size: 40.sp,
                                 color: Colors.brown.shade300),
                             SizedBox(height: 8.h),
-                            Text('Click to add images',
+                            Text(s.clickToAddImages,
                                 style: regularStyle(
                                     fontSize: 14, color: Colors.black87)),
                             Text(
-                              'Attaching photos helps resolve the issue faster.',
+                              s.attachPhotosHint,
                               style: regularStyle(
                                   fontSize: 12, color: Colors.black38),
                             ),
@@ -352,7 +347,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
             SizedBox(height: 20.h),
 
             // ── Location ──────────────────────────────────────────────────
-            Text('Location',
+            Text(s.location,
                 style: regularStyle(fontSize: 16, color: Colors.black87)),
             SizedBox(height: 20.h),
             const MapSample(),
@@ -360,7 +355,7 @@ class _AddComplaintScreenState extends State<AddComplaintScreen> {
 
             // ── Submit ────────────────────────────────────────────────────
             AppTextBtn(
-              buttonText: _isSubmitting ? 'Submitting…' : 'Submit',
+              buttonText: _isSubmitting ? s.submitting : s.submit,
               textStyle: semiBoldStyle(fontSize: 16, color: Colors.white),
               onPressed: _isSubmitting ? (){} : _handleSubmit,
             ),
@@ -423,11 +418,6 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
   late final Animation<double> _checkScale =
       CurvedAnimation(parent: _checkCtrl, curve: Curves.elasticOut);
 
-  static const _labels = [
-    'Uploading photos',
-    'Analysing with AI',
-    'Saving complaint',
-  ];
   static const _icons = [
     Icons.cloud_upload_outlined,
     Icons.psychology_outlined,
@@ -459,7 +449,7 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
         category: widget.category,
       );
       if (imageUrls.isEmpty) {
-        throw Exception('Failed to upload images. Please try again.');
+        throw Exception(S.of(context).failedUploadImages);
       }
 
       // ── 2. ML analysis ──────────────────────────────────────────────────
@@ -493,7 +483,7 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
       );
 
       if (complaintId == null) {
-        throw Exception('Failed to save complaint. Please try again.');
+        throw Exception(S.of(context).failedSaveComplaint);
       }
 
       // ── Done ─────────────────────────────────────────────────────────────
@@ -535,6 +525,12 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
   Widget build(BuildContext context) {
     final isErr  = _step == _Step.error;
     final isDone = _step == _Step.done;
+    final s = S.of(context);
+    final labels = [
+      s.uploadingPhotos,
+      s.analyzingWithAi,
+      s.savingComplaint,
+    ];
 
     return PopScope(
       canPop: false,
@@ -567,10 +563,10 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
               duration: const Duration(milliseconds: 300),
               child: Text(
                 isDone
-                    ? 'Complaint Submitted! 🎉'
+                    ? s.complaintSubmittedSuccess
                     : isErr
-                        ? 'Something went wrong'
-                        : 'Submitting your complaint…',
+                        ? s.somethingWentWrong
+                        : s.submittingComplaint,
                 key: ValueKey(_step),
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -590,7 +586,7 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
             if (isErr) ...[
               SizedBox(height: 8.h),
               Text(
-                _errorMessage ?? 'An unexpected error occurred.',
+                _errorMessage ?? s.unexpectedError,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13.sp, color: Colors.black54),
               ),
@@ -606,12 +602,12 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
                     padding: EdgeInsets.symmetric(vertical: 14.h),
                   ),
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Close'),
+                  child: Text(s.close),
                 ),
               ),
             ] else if (isDone) ...[
               Text(
-                'Your complaint has been recorded and will be reviewed shortly.',
+                s.complaintRecordedReviewSoon,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13.sp, color: Colors.black45),
               ),
@@ -619,7 +615,7 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 250),
                 child: Text(
-                  _labels[_activeIdx.clamp(0, 2)],
+                  labels[_activeIdx.clamp(0, 2)],
                   key: ValueKey(_activeIdx),
                   style: TextStyle(fontSize: 14.sp, color: Colors.black45),
                 ),
@@ -691,7 +687,7 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
   Widget _stepRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(_labels.length, (i) {
+      children: List.generate(_icons.length, (i) {
         final done   = _activeIdx > i;
         final active = _activeIdx == i;
 
@@ -712,7 +708,7 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
               decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
               child: Icon(_icons[i], color: fg, size: 22.sp),
             ),
-            if (i < _labels.length - 1)
+            if (i < _icons.length - 1)
               AnimatedContainer(
                 duration: const Duration(milliseconds: 350),
                 width: 38.w,

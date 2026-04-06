@@ -7,6 +7,7 @@ import '../../app/bloc/notification/notification_bloc.dart';
 import '../../app/models/notification_model.dart';
 import '../../generated/l10n.dart';
 import '../resources/color_manager.dart';
+import '../chat/chat_screen.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -137,6 +138,14 @@ class _NotificationCard extends StatelessWidget {
         if (!isRead) {
           context.read<NotificationBloc>().add(MarkAsRead(notification.id));
         }
+        if (notification.type == NotificationType.chatMessage && notification.relatedId != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChatScreen(peerUserId: notification.relatedId!),
+            ),
+          );
+        }
         // TODO: Navigate to related content based on notification.type and notification.relatedId
       },
       child: Container(
@@ -240,6 +249,8 @@ class _NotificationCard extends StatelessWidget {
         return Icons.person_add_rounded;
       case NotificationType.requestAccepted:
         return Icons.check_circle_rounded;
+      case NotificationType.chatMessage:
+        return Icons.chat_bubble_rounded;
       default:
         return Icons.notifications_rounded;
     }
@@ -255,6 +266,8 @@ class _NotificationCard extends StatelessWidget {
         return Colors.purple;
       case NotificationType.requestAccepted:
         return Colors.green;
+      case NotificationType.chatMessage:
+        return Colors.teal;
       default:
         return ColorManager.gray;
     }

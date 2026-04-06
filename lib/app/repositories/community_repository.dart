@@ -238,4 +238,65 @@ class CommunityRepository {
       relatedId: communityId,
     );
   }
+
+  /// Permanently deletes a community and its related data.
+  ///
+  /// This deletes:
+  /// - the community document itself
+  /// - all join requests sub-documents under `communities/{id}/joinRequests`
+  /// - all issues in the top-level `issues` collection that reference this community
+  ///
+  /// Note: this is a best-effort cascading delete implemented client-side. For large
+  /// communities, consider moving this to a Cloud Function.
+  Future<void> deleteCommunity(String communityId) async {
+    final communityRef = _communities.doc(communityId);
+
+    // 1) Delete join requests subcollection
+    final joinReqSnap = await communityRef.collection('joinRequests').get();
+    if (joinReqSnap.docs.isNotEmpty) {
+      WriteBatch batch = _firestore.batch();
+      var ops = 0;
+      for (final d in joinReqSnap.docs) {
+        batch.delete(d.reference);
+        ops++;
+        if (ops >= 450) {
+          await batch.commit();
+          batch = _firestore.batch();
+          ops = 0;
+        }
+      }
+      if (ops > 0) await batch.commit();
+    }
+
+    // 2) Delete issues belonging to this community
+    final issuesQuery = await _firestore
+        .collection('issues')
+        .where('communityId', isEqualTo: communityId)
+        .get();
+    if (issuesQuery.docs.isNotEmpty) {
+      WriteBatch batch = _firestore.batch();
+      var ops = 0;
+      for (final d in issuesQuery.docs) {
+        batch.delete(d.reference);
+        ops++;
+        if (ops >= 450) {
+          await batch.commit();
+          batch = _firestore.batch();
+          ops = 0;
+        }
+      }
+      if (ops > 0) await batch.commit();
+    }
+
+    // 3) Delete the community document
+    await communityRef.delete();
+
+    // 4) Log activity (best-effort)
+    await _activityLogRepository.logActivity(
+      title: 'Deleted Community',
+      description: 'You deleted a community.',
+      type: ActivityType.community,
+      relatedId: communityId,
+    );
+  }
 }

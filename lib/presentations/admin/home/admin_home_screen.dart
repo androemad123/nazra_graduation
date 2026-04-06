@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../app/models/complaint_model.dart';
 import '../../../app/repositories/complaint_repository.dart';
+import '../../../generated/l10n.dart';
 import '../../resources/color_manager.dart';
 import '../../resources/styles_manager.dart';
 import 'admin_complaint_details_screen.dart';
@@ -15,15 +16,17 @@ class AdminHomeScreen extends StatefulWidget {
 
 class _AdminHomeScreenState extends State<AdminHomeScreen> {
   final ComplaintRepository _repository = ComplaintRepository();
-  String _selectedFilter = 'All'; // All, Pending, In Progress, Resolved
+  String _selectedFilter = 'all'; // all, pending, in_progress, resolved
+  String _selectedPrioritySort = 'none'; // none, high_to_low, low_to_high
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(
-          'Complaint Management',
+          s.complaintManagement,
           style: semiBoldStyle(fontSize: 22, color: Colors.black87),
         ),
       ),
@@ -42,14 +45,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 }
 
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  return Center(child: Text('${s.error}: ${snapshot.error}'));
                 }
 
                 final complaintsData = snapshot.data ?? [];
                 
                 if (complaintsData.isEmpty) {
-                  return const Center(
-                    child: Text('No complaints yet'),
+                  return Center(
+                    child: Text(s.noComplaintsYet),
                   );
                 }
 
@@ -58,11 +61,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     .toList();
 
                 // Filter complaints based on selected filter
-                final filteredComplaints = _filterComplaints(complaints);
+                final filteredComplaints = _sortComplaintsByPriority(
+                  _filterComplaints(complaints),
+                );
 
                 if (filteredComplaints.isEmpty) {
                   return Center(
-                    child: Text('No ${_selectedFilter.toLowerCase()} complaints'),
+                    child: Text(s.noFilteredComplaints),
                   );
                 }
 
@@ -87,30 +92,62 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   Widget _buildFilterTabs() {
-    final filters = ['All', 'Pending', 'In Progress', 'Resolved'];
+    final s = S.of(context);
+    final filters = ['all', 'pending', 'in_progress', 'resolved'];
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: filters.map((filter) {
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: _buildFilterChip(filter),
-            );
-          }).toList(),
+          children: [
+            ...filters.map((filter) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: _buildFilterChip(filter, _statusLabel(s, filter)),
+              );
+            }),
+            const SizedBox(width: 8),
+            DropdownButton<String>(
+              value: _selectedPrioritySort,
+              underline: const SizedBox.shrink(),
+              items: [
+                DropdownMenuItem(value: 'none', child: Text(s.prioritySortNone)),
+                DropdownMenuItem(value: 'high_to_low', child: Text(s.priorityHighToLow)),
+                DropdownMenuItem(value: 'low_to_high', child: Text(s.priorityLowToHigh)),
+              ],
+              onChanged: (value) {
+                if (value == null) return;
+                setState(() {
+                  _selectedPrioritySort = value;
+                });
+              },
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFilterChip(String label) {
-    final isSelected = _selectedFilter == label;
+  String _statusLabel(S s, String status) {
+    switch (status) {
+      case 'pending':
+        return s.pending;
+      case 'in_progress':
+        return s.inProgress;
+      case 'resolved':
+        return s.resolved;
+      default:
+        return s.all;
+    }
+  }
+
+  Widget _buildFilterChip(String value, String label) {
+    final isSelected = _selectedFilter == value;
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedFilter = label;
+          _selectedFilter = value;
         });
       },
       child: Container(
@@ -131,16 +168,44 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   List<Complaint> _filterComplaints(List<Complaint> complaints) {
-    if (_selectedFilter == 'All') {
-      return complaints;
-    } else if (_selectedFilter == 'Pending') {
+    if (_selectedFilter == 'pending') {
       return complaints.where((c) => c.status == 'pending').toList();
-    } else if (_selectedFilter == 'In Progress') {
+    } else if (_selectedFilter == 'in_progress') {
       return complaints.where((c) => c.status == 'in_progress').toList();
-    } else if (_selectedFilter == 'Resolved') {
+    } else if (_selectedFilter == 'resolved') {
       return complaints.where((c) => c.status == 'resolved').toList();
     }
     return complaints;
+  }
+
+  List<Complaint> _sortComplaintsByPriority(List<Complaint> complaints) {
+    final sorted = List<Complaint>.from(complaints);
+    if (_selectedPrioritySort == 'none') return sorted;
+
+    int rank(String priority) {
+      switch (priority.toLowerCase()) {
+        case 'emergency':
+          return 4;
+        case 'high':
+          return 3;
+        case 'medium':
+          return 2;
+        case 'low':
+          return 1;
+        default:
+          return 0;
+      }
+    }
+
+    sorted.sort((a, b) {
+      final aRank = rank(a.priority);
+      final bRank = rank(b.priority);
+      if (_selectedPrioritySort == 'low_to_high') {
+        return aRank.compareTo(bRank);
+      }
+      return bRank.compareTo(aRank);
+    });
+    return sorted;
   }
 
   void _navigateToDetails(Complaint complaint) {
@@ -269,25 +334,26 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     Color color;
     String label;
 
     switch (status) {
       case 'pending':
         color = Colors.orange;
-        label = 'Pending';
+        label = s.pending;
         break;
       case 'in_progress':
         color = Colors.blue;
-        label = 'In Progress';
+        label = s.inProgress;
         break;
       case 'resolved':
         color = Colors.green;
-        label = 'Resolved';
+        label = s.resolved;
         break;
       case 'not_issue':
         color = Colors.grey;
-        label = 'Not Issue';
+        label = s.notIssue;
         break;
       default:
         color = Colors.grey;

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../app/models/complaint_model.dart';
 import '../../../app/repositories/complaint_repository.dart';
+import '../../../generated/l10n.dart';
 import '../../resources/color_manager.dart';
 import '../../resources/styles_manager.dart';
 
@@ -24,12 +25,13 @@ class _AdminComplaintDetailsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     final complaint = widget.complaint;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Complaint Details'),
+        title: Text(s.complaintDetails),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -107,7 +109,7 @@ class _AdminComplaintDetailsScreenState
                       ),
                       SizedBox(width: 4.w),
                       Text(
-                        '${complaint.priority.toUpperCase()} PRIORITY',
+                        '${complaint.priority.toUpperCase()} ${s.priorityLabel}',
                         style: semiBoldStyle(
                           fontSize: 12.sp,
                           color: _getPriorityColor(complaint.priority),
@@ -128,7 +130,7 @@ class _AdminComplaintDetailsScreenState
 
             // 📝 Description Card
             _InfoCard(
-              title: 'Description',
+              title: s.descriptionLabel,
               icon: Icons.description_outlined,
               child: Text(
                 complaint.description,
@@ -142,7 +144,7 @@ class _AdminComplaintDetailsScreenState
 
             // 📍 Location Card
             _InfoCard(
-              title: 'Location & Address',
+              title: s.locationAndAddress,
               icon: Icons.location_on_outlined,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +195,7 @@ class _AdminComplaintDetailsScreenState
                             color: Colors.deepPurple, size: 20.sp),
                         SizedBox(width: 8.w),
                         Text(
-                          'AI Analysis',
+                          s.aiAnalysisTitle,
                           style: semiBoldStyle(
                               fontSize: 16.sp, color: Colors.deepPurple),
                         ),
@@ -201,8 +203,8 @@ class _AdminComplaintDetailsScreenState
                     ),
                     SizedBox(height: 12.h),
                     _DetailRow(
-                      label: 'Is Valid Issue?',
-                      value: complaint.aiAnalysis!.isIssue ? "Yes" : "No",
+                      label: s.isValidIssue,
+                      value: complaint.aiAnalysis!.isIssue ? s.yes : s.no,
                       valueColor: complaint.aiAnalysis!.isIssue
                           ? Colors.green
                           : Colors.red,
@@ -210,14 +212,14 @@ class _AdminComplaintDetailsScreenState
                     if (complaint.aiAnalysis!.confidenceLevel != null) ...[
                       SizedBox(height: 8.h),
                       _DetailRow(
-                        label: 'Confidence',
+                        label: s.confidence,
                         value: complaint.aiAnalysis!.confidenceLevel!,
                       ),
                     ],
                     if (complaint.aiAnalysis!.description != null) ...[
                       SizedBox(height: 8.h),
                       Text(
-                        'AI Summary:',
+                        s.aiSummary,
                         style: semiBoldStyle(
                             fontSize: 13.sp, color: Colors.deepPurple),
                       ),
@@ -235,16 +237,16 @@ class _AdminComplaintDetailsScreenState
 
             // ℹ️ Metadata Card
             _InfoCard(
-              title: 'Metadata',
+              title: s.metadata,
               icon: Icons.info_outline,
               child: Column(
                 children: [
-                  _DetailRow(label: 'User ID', value: complaint.userId),
+                  _DetailRow(label: s.userIdLabel, value: complaint.userId),
                   SizedBox(height: 8.h),
-                  _DetailRow(label: 'Likes', value: '${complaint.likes}'),
+                  _DetailRow(label: s.likes, value: '${complaint.likes}'),
                   SizedBox(height: 8.h),
                   _DetailRow(
-                    label: 'Last Updated',
+                    label: s.lastUpdated,
                     value: DateFormat('MMM d, HH:mm')
                         .format(complaint.updatedAt.toDate()),
                   ),
@@ -259,7 +261,7 @@ class _AdminComplaintDetailsScreenState
         onPressed: () => _showStatusUpdateDialog(),
         backgroundColor: ColorManager.brown,
         icon: const Icon(Icons.edit, color: Colors.white),
-        label: const Text('Update Status', style: TextStyle(color: Colors.white)),
+        label: Text(s.updateStatus, style: const TextStyle(color: Colors.white)),
       ),
     );
   }
@@ -295,6 +297,7 @@ class _AdminComplaintDetailsScreenState
   }
 
   void _showStatusUpdateDialog() {
+    final s = S.of(context);
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
@@ -309,7 +312,7 @@ class _AdminComplaintDetailsScreenState
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Update Status',
+                    s.updateStatus,
                     style: boldStyle(fontSize: 18.sp, color: ColorManager.black),
                   ),
                   IconButton(
@@ -324,7 +327,7 @@ class _AdminComplaintDetailsScreenState
 
               // Status Options
               _StatusOptionTile(
-                label: 'Pending',
+                label: s.pending,
                 icon: Icons.hourglass_empty,
                 color: Colors.orange,
                 isSelected: widget.complaint.status == 'pending',
@@ -332,7 +335,7 @@ class _AdminComplaintDetailsScreenState
               ),
               SizedBox(height: 12.h),
               _StatusOptionTile(
-                label: 'In Progress',
+                label: s.inProgress,
                 icon: Icons.loop,
                 color: Colors.blue,
                 isSelected: widget.complaint.status == 'in_progress',
@@ -340,7 +343,7 @@ class _AdminComplaintDetailsScreenState
               ),
               SizedBox(height: 12.h),
               _StatusOptionTile(
-                label: 'Resolved',
+                label: s.resolved,
                 icon: Icons.check_circle_outline,
                 color: Colors.green,
                 isSelected: widget.complaint.status == 'resolved',
@@ -348,7 +351,7 @@ class _AdminComplaintDetailsScreenState
               ),
               SizedBox(height: 12.h),
               _StatusOptionTile(
-                label: 'Not Issue',
+                label: s.notIssue,
                 icon: Icons.cancel_outlined,
                 color: Colors.grey,
                 isSelected: widget.complaint.status == 'not_issue',
@@ -362,19 +365,20 @@ class _AdminComplaintDetailsScreenState
   }
 
   Future<void> _updateStatus(String newStatus, BuildContext ctx) async {
+    final s = S.of(context);
     try {
       await _repository.updateComplaintStatus(widget.complaint.id, newStatus);
       if (mounted) {
         Navigator.pop(ctx);
         Navigator.pop(context); // Go back to list
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Status updated to $newStatus')),
+          SnackBar(content: Text('${s.statusUpdatedTo} $newStatus')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('${s.error}: $e')),
         );
       }
     }

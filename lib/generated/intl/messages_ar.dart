@@ -22,179 +22,300 @@ class MessageLookup extends MessageLookupByLibrary {
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
-        "accountCreatedSuccess":
-            MessageLookupByLibrary.simpleMessage("تم إنشاء الحساب بنجاح!"),
-        "accountSettings":
-            MessageLookupByLibrary.simpleMessage("إعدادات الحساب"),
-        "activityLog": MessageLookupByLibrary.simpleMessage("سجل النشاطات"),
-        "addNewComplaint":
-            MessageLookupByLibrary.simpleMessage("إضافة شكوى جديدة"),
-        "ago": MessageLookupByLibrary.simpleMessage("منذ"),
-        "aiConfidence":
-            MessageLookupByLibrary.simpleMessage("ثقة الذكاء الاصطناعي"),
-        "all": MessageLookupByLibrary.simpleMessage("الكل"),
-        "alreadyHaveAccount":
-            MessageLookupByLibrary.simpleMessage("لديك حساب بالفعل؟ "),
-        "appNotifications":
-            MessageLookupByLibrary.simpleMessage("إشعارات التطبيق"),
-        "appearance": MessageLookupByLibrary.simpleMessage("المظهر"),
-        "arabic": MessageLookupByLibrary.simpleMessage("العربية"),
-        "back": MessageLookupByLibrary.simpleMessage("عودة"),
-        "cancel": MessageLookupByLibrary.simpleMessage("إلغاء"),
-        "category": MessageLookupByLibrary.simpleMessage("الفئة"),
-        "changePassword":
-            MessageLookupByLibrary.simpleMessage("تغيير كلمة المرور"),
-        "communities": MessageLookupByLibrary.simpleMessage("المجتمعات"),
-        "communityDescLabel": MessageLookupByLibrary.simpleMessage("الوصف"),
-        "communityNameLabel": MessageLookupByLibrary.simpleMessage("الاسم"),
-        "communityUpdates":
-            MessageLookupByLibrary.simpleMessage("تحديثات المجتمع"),
-        "communityVotes": MessageLookupByLibrary.simpleMessage("تصويت المجتمع"),
-        "complaintUpdates":
-            MessageLookupByLibrary.simpleMessage("تحديثات الشكاوى"),
-        "complaints": MessageLookupByLibrary.simpleMessage("الشكاوى"),
-        "confirmPasswordHint":
-            MessageLookupByLibrary.simpleMessage("تأكيد كلمة المرور"),
-        "create": MessageLookupByLibrary.simpleMessage("إنشاء"),
-        "createCommunity": MessageLookupByLibrary.simpleMessage("إنشاء مجتمع"),
-        "createFirstCommunity":
-            MessageLookupByLibrary.simpleMessage("أنشئ أول مجتمع"),
-        "createYourAccount": MessageLookupByLibrary.simpleMessage("أنشئ حسابك"),
-        "creatingAccount":
-            MessageLookupByLibrary.simpleMessage("جارٍ إنشاء الحساب..."),
-        "darkMode": MessageLookupByLibrary.simpleMessage("الوضع الليلي"),
-        "defaultUserEmail": MessageLookupByLibrary.simpleMessage(
-            "dolores.chambers@example.com"),
-        "defaultUserName": MessageLookupByLibrary.simpleMessage("أنيت بلاك"),
-        "details": MessageLookupByLibrary.simpleMessage("التفاصيل"),
-        "dontHaveAccount":
-            MessageLookupByLibrary.simpleMessage("ليس لديك حساب؟ "),
-        "editPersonalInfo":
-            MessageLookupByLibrary.simpleMessage("تعديل المعلومات الشخصية"),
-        "emailHint": MessageLookupByLibrary.simpleMessage("البريد الإلكتروني"),
-        "emergency": MessageLookupByLibrary.simpleMessage("طوارئ"),
-        "english": MessageLookupByLibrary.simpleMessage("الإنجليزية"),
-        "escalationNote":
-            MessageLookupByLibrary.simpleMessage("ملاحظة التصعيد"),
-        "forgotPassword":
-            MessageLookupByLibrary.simpleMessage("نسيت كلمة المرور؟"),
-        "fullNameHint": MessageLookupByLibrary.simpleMessage("الاسم الكامل"),
-        "help": MessageLookupByLibrary.simpleMessage("مساعدة"),
-        "high": MessageLookupByLibrary.simpleMessage("عالية"),
-        "home": MessageLookupByLibrary.simpleMessage("الرئيسية"),
-        "homeSubtitle":
-            MessageLookupByLibrary.simpleMessage("إبلاغك يصنع الفرق"),
-        "inProgress": MessageLookupByLibrary.simpleMessage("قيد التنفيذ"),
-        "issueDetails": MessageLookupByLibrary.simpleMessage("تفاصيل المشكلة"),
-        "issueEscalated": MessageLookupByLibrary.simpleMessage(
-            "تم تصعيد المشكلة إلى السلطات"),
-        "issueReported":
-            MessageLookupByLibrary.simpleMessage("تم الإبلاغ عن المشكلة"),
-        "issueResolved": MessageLookupByLibrary.simpleMessage("تم حل المشكلة"),
-        "issueTitle": MessageLookupByLibrary.simpleMessage("عنوان المشكلة"),
-        "issueUnderReview": MessageLookupByLibrary.simpleMessage(
-            "المشكلة قيد المراجعة من قبل المجتمع/المسؤول"),
-        "justNow": MessageLookupByLibrary.simpleMessage("الآن"),
-        "language": MessageLookupByLibrary.simpleMessage("اللغة"),
-        "loggedOutSuccessfully":
-            MessageLookupByLibrary.simpleMessage("تم تسجيل الخروج بنجاح"),
-        "loggingIn":
-            MessageLookupByLibrary.simpleMessage("جارٍ تسجيل الدخول..."),
-        "loggingOut":
-            MessageLookupByLibrary.simpleMessage("جارٍ تسجيل الخروج..."),
-        "login": MessageLookupByLibrary.simpleMessage("تسجيل الدخول"),
-        "loginButton": MessageLookupByLibrary.simpleMessage("تسجيل الدخول"),
-        "logout": MessageLookupByLibrary.simpleMessage("تسجيل الخروج"),
-        "logoutFailed":
-            MessageLookupByLibrary.simpleMessage("فشل تسجيل الخروج"),
-        "low": MessageLookupByLibrary.simpleMessage("منخفضة"),
-        "markAllAsRead":
-            MessageLookupByLibrary.simpleMessage("تحديد الكل كمقروء"),
-        "medium": MessageLookupByLibrary.simpleMessage("متوسطة"),
-        "next": MessageLookupByLibrary.simpleMessage("التالي"),
-        "noActivitiesFound":
-            MessageLookupByLibrary.simpleMessage("لم يتم العثور على نشاطات"),
-        "noCategoriesYet":
-            MessageLookupByLibrary.simpleMessage("لا توجد فئات بعد"),
-        "noCommunitiesYet":
-            MessageLookupByLibrary.simpleMessage("لا توجد مجتمعات بعد"),
-        "noDataAvailable":
-            MessageLookupByLibrary.simpleMessage("لا توجد بيانات متاحة"),
-        "noNotificationsYet":
-            MessageLookupByLibrary.simpleMessage("لا توجد إشعارات بعد"),
-        "notifications": MessageLookupByLibrary.simpleMessage("الإشعارات"),
-        "onboardSubtitle1": MessageLookupByLibrary.simpleMessage(
-            "مع كل نظرة، تتحسن شوارعنا. أبلغ عن مشكلة وشاهد كيف يتم إصلاحها."),
-        "onboardSubtitle2": MessageLookupByLibrary.simpleMessage(
-            "الأمر أسرع مما تتخيل. التقط صورة، أضف الموقع، وأرسل البلاغ في أقل من 30 ثانية."),
-        "onboardSubtitle3": MessageLookupByLibrary.simpleMessage(
-            "ابقَ على اطلاع في كل خطوة. من بلاغ جديد إلى الحل — شاهد كيف تحول نظرة المشاكل إلى تحسينات."),
-        "onboardTitle1":
-            MessageLookupByLibrary.simpleMessage("انظر، التقط، حسّن"),
-        "onboardTitle2": MessageLookupByLibrary.simpleMessage("أبلغ في ثوانٍ"),
-        "onboardTitle3": MessageLookupByLibrary.simpleMessage("تابع التقدم"),
-        "orContinueWith":
-            MessageLookupByLibrary.simpleMessage("أو تابع باستخدام"),
-        "orSignupWith": MessageLookupByLibrary.simpleMessage("أو سجل باستخدام"),
-        "passwordHint": MessageLookupByLibrary.simpleMessage("كلمة المرور"),
-        "passwordsDoNotMatch":
-            MessageLookupByLibrary.simpleMessage("كلمات المرور غير متطابقة"),
-        "pending": MessageLookupByLibrary.simpleMessage("قيد الانتظار"),
-        "pendingEscalation":
-            MessageLookupByLibrary.simpleMessage("بانتظار التصعيد"),
-        "pendingResolution":
-            MessageLookupByLibrary.simpleMessage("بانتظار الحل"),
-        "pendingReview":
-            MessageLookupByLibrary.simpleMessage("بانتظار المراجعة"),
-        "phoneHint": MessageLookupByLibrary.simpleMessage("رقم الهاتف"),
-        "pleaseFillAllFields": MessageLookupByLibrary.simpleMessage(
-            "يرجى ملء جميع الحقول المطلوبة"),
-        "points": MessageLookupByLibrary.simpleMessage("النقاط"),
-        "priorityDistribution":
-            MessageLookupByLibrary.simpleMessage("توزيع الأولويات"),
-        "profile": MessageLookupByLibrary.simpleMessage("الملف الشخصي"),
-        "progress": MessageLookupByLibrary.simpleMessage("التقدم"),
-        "rememberMe": MessageLookupByLibrary.simpleMessage("تذكرني"),
-        "removeVote": MessageLookupByLibrary.simpleMessage("إزالة التصويت"),
-        "reportedOn": MessageLookupByLibrary.simpleMessage("تم الإبلاغ في"),
-        "resolved": MessageLookupByLibrary.simpleMessage("تم الحل"),
-        "rewards": MessageLookupByLibrary.simpleMessage("المكافآت"),
-        "rewardsCenter": MessageLookupByLibrary.simpleMessage("مركز المكافآت"),
-        "settings": MessageLookupByLibrary.simpleMessage("الإعدادات"),
-        "signIn": MessageLookupByLibrary.simpleMessage("تسجيل الدخول"),
-        "signUp": MessageLookupByLibrary.simpleMessage("إنشاء حساب"),
-        "signupButton": MessageLookupByLibrary.simpleMessage("إنشاء حساب"),
-        "signupFailed":
-            MessageLookupByLibrary.simpleMessage("فشل إنشاء الحساب"),
-        "skip": MessageLookupByLibrary.simpleMessage("تخطي"),
-        "statistics": MessageLookupByLibrary.simpleMessage("الإحصائيات"),
-        "statusDistribution":
-            MessageLookupByLibrary.simpleMessage("توزيع الحالات"),
-        "statusEscalated": MessageLookupByLibrary.simpleMessage("تم التصعيد"),
-        "statusNew": MessageLookupByLibrary.simpleMessage("جديد"),
-        "statusResolved": MessageLookupByLibrary.simpleMessage("تم الحل"),
-        "statusUnderReview":
-            MessageLookupByLibrary.simpleMessage("قيد المراجعة"),
-        "tapToViewDetails":
-            MessageLookupByLibrary.simpleMessage("اضغط لعرض التفاصيل"),
-        "topCategories": MessageLookupByLibrary.simpleMessage("أهم الفئات"),
-        "totalComplaints":
-            MessageLookupByLibrary.simpleMessage("إجمالي الشكاوى"),
-        "trackComplaintSubtitle":
-            MessageLookupByLibrary.simpleMessage("تابع حالة بلاغك خطوة بخطوة"),
-        "trackYourComplaint":
-            MessageLookupByLibrary.simpleMessage("تتبع شكواك"),
-        "uploadPhotoSubtitle":
-            MessageLookupByLibrary.simpleMessage("ارفع صورة للمشكلة بسهولة"),
-        "userNotLoggedIn":
-            MessageLookupByLibrary.simpleMessage("المستخدم غير مسجل الدخول"),
-        "voteForEscalation":
-            MessageLookupByLibrary.simpleMessage("صوّت للتصعيد"),
-        "voteToEscalate":
-            MessageLookupByLibrary.simpleMessage("صوّت لتصعيد هذه المشكلة"),
-        "votes": MessageLookupByLibrary.simpleMessage("تصويت"),
-        "weWillLetYouKnow":
-            MessageLookupByLibrary.simpleMessage("سنخبرك عند حدوث شيء جديد"),
-        "welcome": MessageLookupByLibrary.simpleMessage("مرحباً")
-      };
+    "accountCreatedSuccess": MessageLookupByLibrary.simpleMessage(
+      "تم إنشاء الحساب بنجاح!",
+    ),
+    "accountSettings": MessageLookupByLibrary.simpleMessage("إعدادات الحساب"),
+    "activityLog": MessageLookupByLibrary.simpleMessage("سجل النشاطات"),
+    "addComplaintTitle": MessageLookupByLibrary.simpleMessage("إضافة شكوى"),
+    "addNewComplaint": MessageLookupByLibrary.simpleMessage("إضافة شكوى جديدة"),
+    "addPhotos": MessageLookupByLibrary.simpleMessage("إضافة صور"),
+    "ago": MessageLookupByLibrary.simpleMessage("منذ"),
+    "aiAnalysisTitle": MessageLookupByLibrary.simpleMessage(
+      "تحليل الذكاء الاصطناعي",
+    ),
+    "aiConfidence": MessageLookupByLibrary.simpleMessage(
+      "ثقة الذكاء الاصطناعي",
+    ),
+    "aiSummary": MessageLookupByLibrary.simpleMessage("ملخص الذكاء الاصطناعي:"),
+    "all": MessageLookupByLibrary.simpleMessage("الكل"),
+    "alreadyHaveAccount": MessageLookupByLibrary.simpleMessage(
+      "لديك حساب بالفعل؟ ",
+    ),
+    "analyzingWithAi": MessageLookupByLibrary.simpleMessage(
+      "جارٍ التحليل بالذكاء الاصطناعي",
+    ),
+    "appNotifications": MessageLookupByLibrary.simpleMessage("إشعارات التطبيق"),
+    "appearance": MessageLookupByLibrary.simpleMessage("المظهر"),
+    "arabic": MessageLookupByLibrary.simpleMessage("العربية"),
+    "attachPhotosHint": MessageLookupByLibrary.simpleMessage(
+      "إرفاق الصور يساعد على حل المشكلة بشكل أسرع.",
+    ),
+    "back": MessageLookupByLibrary.simpleMessage("عودة"),
+    "cancel": MessageLookupByLibrary.simpleMessage("إلغاء"),
+    "category": MessageLookupByLibrary.simpleMessage("الفئة"),
+    "change": MessageLookupByLibrary.simpleMessage("تغيير"),
+    "changePassword": MessageLookupByLibrary.simpleMessage("تغيير كلمة المرور"),
+    "clickToAddImages": MessageLookupByLibrary.simpleMessage("اضغط لإضافة صور"),
+    "close": MessageLookupByLibrary.simpleMessage("إغلاق"),
+    "communities": MessageLookupByLibrary.simpleMessage("المجتمعات"),
+    "communityDescLabel": MessageLookupByLibrary.simpleMessage("الوصف"),
+    "communityNameLabel": MessageLookupByLibrary.simpleMessage("الاسم"),
+    "communityUpdates": MessageLookupByLibrary.simpleMessage("تحديثات المجتمع"),
+    "communityVotes": MessageLookupByLibrary.simpleMessage("تصويت المجتمع"),
+    "complaintDetails": MessageLookupByLibrary.simpleMessage("تفاصيل الشكوى"),
+    "complaintManagement": MessageLookupByLibrary.simpleMessage(
+      "إدارة الشكاوى",
+    ),
+    "complaintRecordedReviewSoon": MessageLookupByLibrary.simpleMessage(
+      "تم تسجيل شكواك وسيتم مراجعتها قريبًا.",
+    ),
+    "complaintSubmittedSuccess": MessageLookupByLibrary.simpleMessage(
+      "تم إرسال الشكوى بنجاح! 🎉",
+    ),
+    "complaintUpdates": MessageLookupByLibrary.simpleMessage("تحديثات الشكاوى"),
+    "complaints": MessageLookupByLibrary.simpleMessage("الشكاوى"),
+    "confidence": MessageLookupByLibrary.simpleMessage("مستوى الثقة"),
+    "confirmPasswordHint": MessageLookupByLibrary.simpleMessage(
+      "تأكيد كلمة المرور",
+    ),
+    "create": MessageLookupByLibrary.simpleMessage("إنشاء"),
+    "createCommunity": MessageLookupByLibrary.simpleMessage("إنشاء مجتمع"),
+    "createFirstCommunity": MessageLookupByLibrary.simpleMessage(
+      "أنشئ أول مجتمع",
+    ),
+    "createYourAccount": MessageLookupByLibrary.simpleMessage("أنشئ حسابك"),
+    "creatingAccount": MessageLookupByLibrary.simpleMessage(
+      "جارٍ إنشاء الحساب...",
+    ),
+    "currentLocation": MessageLookupByLibrary.simpleMessage("الموقع الحالي"),
+    "darkMode": MessageLookupByLibrary.simpleMessage("الوضع الليلي"),
+    "defaultUserEmail": MessageLookupByLibrary.simpleMessage(
+      "dolores.chambers@example.com",
+    ),
+    "defaultUserName": MessageLookupByLibrary.simpleMessage("أنيت بلاك"),
+    "descriptionLabel": MessageLookupByLibrary.simpleMessage("الوصف"),
+    "details": MessageLookupByLibrary.simpleMessage("التفاصيل"),
+    "dontHaveAccount": MessageLookupByLibrary.simpleMessage("ليس لديك حساب؟ "),
+    "editPersonalInfo": MessageLookupByLibrary.simpleMessage(
+      "تعديل المعلومات الشخصية",
+    ),
+    "emailHint": MessageLookupByLibrary.simpleMessage("البريد الإلكتروني"),
+    "emergency": MessageLookupByLibrary.simpleMessage("طوارئ"),
+    "english": MessageLookupByLibrary.simpleMessage("الإنجليزية"),
+    "error": MessageLookupByLibrary.simpleMessage("خطأ"),
+    "escalationNote": MessageLookupByLibrary.simpleMessage("ملاحظة التصعيد"),
+    "failedSaveComplaint": MessageLookupByLibrary.simpleMessage(
+      "فشل حفظ الشكوى. حاول مرة أخرى.",
+    ),
+    "failedToLoadComplaints": MessageLookupByLibrary.simpleMessage(
+      "فشل تحميل الشكاوى",
+    ),
+    "failedUploadImages": MessageLookupByLibrary.simpleMessage(
+      "فشل رفع الصور. حاول مرة أخرى.",
+    ),
+    "fixed": MessageLookupByLibrary.simpleMessage("تم الإصلاح"),
+    "forgotPassword": MessageLookupByLibrary.simpleMessage("نسيت كلمة المرور؟"),
+    "fullNameHint": MessageLookupByLibrary.simpleMessage("الاسم الكامل"),
+    "help": MessageLookupByLibrary.simpleMessage("مساعدة"),
+    "high": MessageLookupByLibrary.simpleMessage("عالية"),
+    "home": MessageLookupByLibrary.simpleMessage("الرئيسية"),
+    "homeSubtitle": MessageLookupByLibrary.simpleMessage("إبلاغك يصنع الفرق"),
+    "inProgress": MessageLookupByLibrary.simpleMessage("قيد التنفيذ"),
+    "isValidIssue": MessageLookupByLibrary.simpleMessage("هل هي مشكلة فعلًا؟"),
+    "issueDetails": MessageLookupByLibrary.simpleMessage("تفاصيل المشكلة"),
+    "issueEscalated": MessageLookupByLibrary.simpleMessage(
+      "تم تصعيد المشكلة إلى السلطات",
+    ),
+    "issueReported": MessageLookupByLibrary.simpleMessage(
+      "تم الإبلاغ عن المشكلة",
+    ),
+    "issueResolved": MessageLookupByLibrary.simpleMessage("تم حل المشكلة"),
+    "issueTitle": MessageLookupByLibrary.simpleMessage("عنوان المشكلة"),
+    "issueUnderReview": MessageLookupByLibrary.simpleMessage(
+      "المشكلة قيد المراجعة من قبل المجتمع/المسؤول",
+    ),
+    "justNow": MessageLookupByLibrary.simpleMessage("الآن"),
+    "language": MessageLookupByLibrary.simpleMessage("اللغة"),
+    "lastUpdated": MessageLookupByLibrary.simpleMessage("آخر تحديث"),
+    "likes": MessageLookupByLibrary.simpleMessage("الإعجابات"),
+    "location": MessageLookupByLibrary.simpleMessage("الموقع"),
+    "locationAndAddress": MessageLookupByLibrary.simpleMessage(
+      "الموقع والعنوان",
+    ),
+    "loggedOutSuccessfully": MessageLookupByLibrary.simpleMessage(
+      "تم تسجيل الخروج بنجاح",
+    ),
+    "loggingIn": MessageLookupByLibrary.simpleMessage("جارٍ تسجيل الدخول..."),
+    "loggingOut": MessageLookupByLibrary.simpleMessage("جارٍ تسجيل الخروج..."),
+    "login": MessageLookupByLibrary.simpleMessage("تسجيل الدخول"),
+    "loginButton": MessageLookupByLibrary.simpleMessage("تسجيل الدخول"),
+    "logout": MessageLookupByLibrary.simpleMessage("تسجيل الخروج"),
+    "logoutFailed": MessageLookupByLibrary.simpleMessage("فشل تسجيل الخروج"),
+    "low": MessageLookupByLibrary.simpleMessage("منخفضة"),
+    "markAllAsRead": MessageLookupByLibrary.simpleMessage("تحديد الكل كمقروء"),
+    "medium": MessageLookupByLibrary.simpleMessage("متوسطة"),
+    "metadata": MessageLookupByLibrary.simpleMessage("البيانات"),
+    "myComplaints": MessageLookupByLibrary.simpleMessage("شكاواي"),
+    "next": MessageLookupByLibrary.simpleMessage("التالي"),
+    "no": MessageLookupByLibrary.simpleMessage("لا"),
+    "noActivitiesFound": MessageLookupByLibrary.simpleMessage(
+      "لم يتم العثور على نشاطات",
+    ),
+    "noCategoriesYet": MessageLookupByLibrary.simpleMessage("لا توجد فئات بعد"),
+    "noCommunitiesYet": MessageLookupByLibrary.simpleMessage(
+      "لا توجد مجتمعات بعد",
+    ),
+    "noComplaintsYet": MessageLookupByLibrary.simpleMessage(
+      "لا توجد شكاوى بعد.",
+    ),
+    "noDataAvailable": MessageLookupByLibrary.simpleMessage(
+      "لا توجد بيانات متاحة",
+    ),
+    "noFilteredComplaints": MessageLookupByLibrary.simpleMessage(
+      "لا توجد شكاوى مطابقة للفلاتر المحددة",
+    ),
+    "noNotificationsYet": MessageLookupByLibrary.simpleMessage(
+      "لا توجد إشعارات بعد",
+    ),
+    "notIssue": MessageLookupByLibrary.simpleMessage("ليست مشكلة"),
+    "notifications": MessageLookupByLibrary.simpleMessage("الإشعارات"),
+    "onboardSubtitle1": MessageLookupByLibrary.simpleMessage(
+      "مع كل نظرة، تتحسن شوارعنا. أبلغ عن مشكلة وشاهد كيف يتم إصلاحها.",
+    ),
+    "onboardSubtitle2": MessageLookupByLibrary.simpleMessage(
+      "الأمر أسرع مما تتخيل. التقط صورة، أضف الموقع، وأرسل البلاغ في أقل من 30 ثانية.",
+    ),
+    "onboardSubtitle3": MessageLookupByLibrary.simpleMessage(
+      "ابقَ على اطلاع في كل خطوة. من بلاغ جديد إلى الحل — شاهد كيف تحول نظرة المشاكل إلى تحسينات.",
+    ),
+    "onboardTitle1": MessageLookupByLibrary.simpleMessage("انظر، التقط، حسّن"),
+    "onboardTitle2": MessageLookupByLibrary.simpleMessage("أبلغ في ثوانٍ"),
+    "onboardTitle3": MessageLookupByLibrary.simpleMessage("تابع التقدم"),
+    "orContinueWith": MessageLookupByLibrary.simpleMessage("أو تابع باستخدام"),
+    "orSignupWith": MessageLookupByLibrary.simpleMessage("أو سجل باستخدام"),
+    "passwordHint": MessageLookupByLibrary.simpleMessage("كلمة المرور"),
+    "passwordsDoNotMatch": MessageLookupByLibrary.simpleMessage(
+      "كلمات المرور غير متطابقة",
+    ),
+    "pending": MessageLookupByLibrary.simpleMessage("قيد الانتظار"),
+    "pendingEscalation": MessageLookupByLibrary.simpleMessage(
+      "بانتظار التصعيد",
+    ),
+    "pendingResolution": MessageLookupByLibrary.simpleMessage("بانتظار الحل"),
+    "pendingReview": MessageLookupByLibrary.simpleMessage("بانتظار المراجعة"),
+    "phoneHint": MessageLookupByLibrary.simpleMessage("رقم الهاتف"),
+    "pleaseAddPhoto": MessageLookupByLibrary.simpleMessage(
+      "يرجى إضافة صورة واحدة على الأقل",
+    ),
+    "pleaseEnterDescription": MessageLookupByLibrary.simpleMessage(
+      "يرجى إدخال وصف",
+    ),
+    "pleaseFillAllFields": MessageLookupByLibrary.simpleMessage(
+      "يرجى ملء جميع الحقول المطلوبة",
+    ),
+    "pleaseSelectProblemType": MessageLookupByLibrary.simpleMessage(
+      "يرجى اختيار نوع المشكلة",
+    ),
+    "pleaseWaitLocationLoad": MessageLookupByLibrary.simpleMessage(
+      "يرجى الانتظار حتى تحميل الموقع",
+    ),
+    "points": MessageLookupByLibrary.simpleMessage("النقاط"),
+    "priorityDistribution": MessageLookupByLibrary.simpleMessage(
+      "توزيع الأولويات",
+    ),
+    "priorityHighToLow": MessageLookupByLibrary.simpleMessage(
+      "الأولوية: من الأعلى إلى الأقل",
+    ),
+    "priorityLabel": MessageLookupByLibrary.simpleMessage("أولوية"),
+    "priorityLowToHigh": MessageLookupByLibrary.simpleMessage(
+      "الأولوية: من الأقل إلى الأعلى",
+    ),
+    "prioritySortNone": MessageLookupByLibrary.simpleMessage(
+      "الأولوية: بدون ترتيب",
+    ),
+    "problemDescription": MessageLookupByLibrary.simpleMessage("وصف المشكلة"),
+    "profile": MessageLookupByLibrary.simpleMessage("الملف الشخصي"),
+    "progress": MessageLookupByLibrary.simpleMessage("التقدم"),
+    "rememberMe": MessageLookupByLibrary.simpleMessage("تذكرني"),
+    "removeVote": MessageLookupByLibrary.simpleMessage("إزالة التصويت"),
+    "reportNumber": MessageLookupByLibrary.simpleMessage("رقم البلاغ"),
+    "reportReceived": MessageLookupByLibrary.simpleMessage("تم استلام البلاغ"),
+    "reportReviewedClassified": MessageLookupByLibrary.simpleMessage(
+      "تمت مراجعة البلاغ وتصنيفه",
+    ),
+    "reportStatus": MessageLookupByLibrary.simpleMessage("حالة البلاغ"),
+    "reportedOn": MessageLookupByLibrary.simpleMessage("تم الإبلاغ في"),
+    "resolved": MessageLookupByLibrary.simpleMessage("تم الحل"),
+    "retry": MessageLookupByLibrary.simpleMessage("إعادة المحاولة"),
+    "rewards": MessageLookupByLibrary.simpleMessage("المكافآت"),
+    "rewardsCenter": MessageLookupByLibrary.simpleMessage("مركز المكافآت"),
+    "savingComplaint": MessageLookupByLibrary.simpleMessage("جارٍ حفظ الشكوى"),
+    "selectProblemType": MessageLookupByLibrary.simpleMessage(
+      "اختر نوع المشكلة",
+    ),
+    "settings": MessageLookupByLibrary.simpleMessage("الإعدادات"),
+    "signIn": MessageLookupByLibrary.simpleMessage("تسجيل الدخول"),
+    "signUp": MessageLookupByLibrary.simpleMessage("إنشاء حساب"),
+    "signupButton": MessageLookupByLibrary.simpleMessage("إنشاء حساب"),
+    "signupFailed": MessageLookupByLibrary.simpleMessage("فشل إنشاء الحساب"),
+    "skip": MessageLookupByLibrary.simpleMessage("تخطي"),
+    "somethingWentWrong": MessageLookupByLibrary.simpleMessage("حدث خطأ ما"),
+    "statistics": MessageLookupByLibrary.simpleMessage("الإحصائيات"),
+    "statusDistribution": MessageLookupByLibrary.simpleMessage("توزيع الحالات"),
+    "statusEscalated": MessageLookupByLibrary.simpleMessage("تم التصعيد"),
+    "statusNew": MessageLookupByLibrary.simpleMessage("جديد"),
+    "statusResolved": MessageLookupByLibrary.simpleMessage("تم الحل"),
+    "statusUnderReview": MessageLookupByLibrary.simpleMessage("قيد المراجعة"),
+    "statusUpdatedTo": MessageLookupByLibrary.simpleMessage(
+      "تم تحديث الحالة إلى",
+    ),
+    "submissionDate": MessageLookupByLibrary.simpleMessage("تاريخ الإرسال"),
+    "submit": MessageLookupByLibrary.simpleMessage("إرسال"),
+    "submitIssueHint": MessageLookupByLibrary.simpleMessage(
+      "أرسل بلاغًا ليظهر هنا.",
+    ),
+    "submitting": MessageLookupByLibrary.simpleMessage("جارٍ الإرسال..."),
+    "submittingComplaint": MessageLookupByLibrary.simpleMessage(
+      "جارٍ إرسال الشكوى...",
+    ),
+    "tapToViewDetails": MessageLookupByLibrary.simpleMessage(
+      "اضغط لعرض التفاصيل",
+    ),
+    "teamStartedSolving": MessageLookupByLibrary.simpleMessage(
+      "بدأ فريقنا العمل على حل المشكلة",
+    ),
+    "topCategories": MessageLookupByLibrary.simpleMessage("أهم الفئات"),
+    "totalComplaints": MessageLookupByLibrary.simpleMessage("إجمالي الشكاوى"),
+    "trackComplaintSubtitle": MessageLookupByLibrary.simpleMessage(
+      "تابع حالة بلاغك خطوة بخطوة",
+    ),
+    "trackYourComplaint": MessageLookupByLibrary.simpleMessage("تتبع شكواك"),
+    "typeOfProblem": MessageLookupByLibrary.simpleMessage("نوع المشكلة"),
+    "unexpectedError": MessageLookupByLibrary.simpleMessage(
+      "حدث خطأ غير متوقع.",
+    ),
+    "updateStatus": MessageLookupByLibrary.simpleMessage("تحديث الحالة"),
+    "uploadPhotoSubtitle": MessageLookupByLibrary.simpleMessage(
+      "ارفع صورة للمشكلة بسهولة",
+    ),
+    "uploadingPhotos": MessageLookupByLibrary.simpleMessage("جارٍ رفع الصور"),
+    "userIdLabel": MessageLookupByLibrary.simpleMessage("معرف المستخدم"),
+    "userNotLoggedIn": MessageLookupByLibrary.simpleMessage(
+      "المستخدم غير مسجل الدخول",
+    ),
+    "voteForEscalation": MessageLookupByLibrary.simpleMessage("صوّت للتصعيد"),
+    "voteToEscalate": MessageLookupByLibrary.simpleMessage(
+      "صوّت لتصعيد هذه المشكلة",
+    ),
+    "votes": MessageLookupByLibrary.simpleMessage("تصويت"),
+    "weWillLetYouKnow": MessageLookupByLibrary.simpleMessage(
+      "سنخبرك عند حدوث شيء جديد",
+    ),
+    "welcome": MessageLookupByLibrary.simpleMessage("مرحباً"),
+    "writeProblemDescription": MessageLookupByLibrary.simpleMessage(
+      "اكتب وصفًا للمشكلة...",
+    ),
+    "yes": MessageLookupByLibrary.simpleMessage("نعم"),
+  };
 }
