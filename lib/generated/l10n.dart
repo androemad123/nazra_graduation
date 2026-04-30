@@ -1538,6 +1538,251 @@ class S {
       args: [],
     );
   }
+
+  /// `AI analysis failed. Please try again.`
+  String get aiAnalysisFailed {
+    return Intl.message(
+      'AI analysis failed. Please try again.',
+      name: 'aiAnalysisFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The AI determined the image is not a valid issue.`
+  String get imageNotValidIssue {
+    return Intl.message(
+      'The AI determined the image is not a valid issue.',
+      name: 'imageNotValidIssue',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Report delay`
+  String get reportDelay {
+    return Intl.message(
+      'Report delay',
+      name: 'reportDelay',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add an optional message to admin...`
+  String get feedbackOptionalMessage {
+    return Intl.message(
+      'Add an optional message to admin...',
+      name: 'feedbackOptionalMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Feedback sent to admin`
+  String get feedbackSent {
+    return Intl.message(
+      'Feedback sent to admin',
+      name: 'feedbackSent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Feedback Inbox`
+  String get feedbackInbox {
+    return Intl.message(
+      'Feedback Inbox',
+      name: 'feedbackInbox',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Open`
+  String get open {
+    return Intl.message('Open', name: 'open', desc: '', args: []);
+  }
+
+  /// `No feedback yet`
+  String get noFeedbackYet {
+    return Intl.message(
+      'No feedback yet',
+      name: 'noFeedbackYet',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Complaint ID`
+  String get complaintIdLabel {
+    return Intl.message(
+      'Complaint ID',
+      name: 'complaintIdLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No message provided`
+  String get noMessageProvided {
+    return Intl.message(
+      'No message provided',
+      name: 'noMessageProvided',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Age (days)`
+  String get complaintAgeDays {
+    return Intl.message(
+      'Age (days)',
+      name: 'complaintAgeDays',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Threshold (days)`
+  String get thresholdDays {
+    return Intl.message(
+      'Threshold (days)',
+      name: 'thresholdDays',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `URGENT`
+  String get urgent {
+    return Intl.message('URGENT', name: 'urgent', desc: '', args: []);
+  }
+
+  /// `Mark resolved`
+  String get markResolved {
+    return Intl.message(
+      'Mark resolved',
+      name: 'markResolved',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Possible duplicate found`
+  String get duplicatePotentialTitle {
+    return Intl.message(
+      'Possible duplicate found',
+      name: 'duplicatePotentialTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `A similar complaint appears to already exist nearby.`
+  String get duplicatePotentialBody {
+    return Intl.message(
+      'A similar complaint appears to already exist nearby.',
+      name: 'duplicatePotentialBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Similarity`
+  String get duplicateScoreLabel {
+    return Intl.message(
+      'Similarity',
+      name: 'duplicateScoreLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Distance`
+  String get duplicateDistanceLabel {
+    return Intl.message(
+      'Distance',
+      name: 'duplicateDistanceLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Submit anyway`
+  String get submitAnyway {
+    return Intl.message(
+      'Submit anyway',
+      name: 'submitAnyway',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Join existing`
+  String get joinExisting {
+    return Intl.message(
+      'Join existing',
+      name: 'joinExisting',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mark as duplicate`
+  String get markAsDuplicate {
+    return Intl.message(
+      'Mark as duplicate',
+      name: 'markAsDuplicate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save`
+  String get save {
+    return Intl.message('Save', name: 'save', desc: '', args: []);
+  }
+
+  /// `Complaint marked as duplicate`
+  String get duplicateMarkedSuccess {
+    return Intl.message(
+      'Complaint marked as duplicate',
+      name: 'duplicateMarkedSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Duplicate clusters`
+  String get duplicateClusters {
+    return Intl.message(
+      'Duplicate clusters',
+      name: 'duplicateClusters',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No duplicate clusters yet`
+  String get noDuplicateClusters {
+    return Intl.message(
+      'No duplicate clusters yet',
+      name: 'noDuplicateClusters',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cluster`
+  String get clusterLabel {
+    return Intl.message('Cluster', name: 'clusterLabel', desc: '', args: []);
+  }
+
+  /// `Items`
+  String get clusterItemsCount {
+    return Intl.message('Items', name: 'clusterItemsCount', desc: '', args: []);
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

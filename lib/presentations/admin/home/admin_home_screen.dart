@@ -6,6 +6,8 @@ import '../../../generated/l10n.dart';
 import '../../resources/color_manager.dart';
 import '../../resources/styles_manager.dart';
 import 'admin_complaint_details_screen.dart';
+import 'admin_duplicate_clusters_screen.dart';
+import 'admin_feedback_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -29,6 +31,32 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           s.complaintManagement,
           style: semiBoldStyle(fontSize: 22, color: Colors.black87),
         ),
+        actions: [
+          IconButton(
+            tooltip: s.duplicateClusters,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AdminDuplicateClustersScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.account_tree_outlined),
+          ),
+          IconButton(
+            tooltip: s.feedbackInbox,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AdminFeedbackScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.feedback_outlined),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -71,15 +99,104 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   );
                 }
 
-                return ListView.separated(
+                final groupedComplaints = _groupComplaintsByCategory(
+                  filteredComplaints,
+                );
+                final groupedEntries = groupedComplaints.entries.toList()
+                  ..sort((a, b) => b.value.length.compareTo(a.value.length));
+
+                return ListView.builder(
                   padding: const EdgeInsets.all(12),
-                  itemCount: filteredComplaints.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemCount: groupedEntries.length,
                   itemBuilder: (context, index) {
-                    final complaint = filteredComplaints[index];
-                    return _ComplaintCard(
-                      complaint: complaint,
-                      onTap: () => _navigateToDetails(complaint),
+                    final entry = groupedEntries[index];
+                    final category = entry.key;
+                    final complaintsInCategory = entry.value;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: const Color(0xFFE7D8C1),
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x12000000),
+                            blurRadius: 8,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Theme(
+                        data: Theme.of(context).copyWith(
+                          dividerColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                        ),
+                        child: ExpansionTile(
+                          tilePadding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                          leading: Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF4E6D3),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.folder_open_outlined,
+                              size: 20,
+                              color: Color(0xFF8B6A42),
+                            ),
+                          ),
+                          title: Text(
+                            category,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: semiBoldStyle(
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          subtitle: Text(
+                            '${complaintsInCategory.length} complaint(s)',
+                            style: regularStyle(
+                              fontSize: 12,
+                              color: ColorManager.darkGray,
+                            ),
+                          ),
+                          trailing: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8F8F8),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              '${complaintsInCategory.length}',
+                              style: semiBoldStyle(
+                                fontSize: 12,
+                                color: const Color(0xFF8B6A42),
+                              ),
+                            ),
+                          ),
+                          children: complaintsInCategory
+                              .map(
+                                (complaint) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: _ComplaintCard(
+                                    complaint: complaint,
+                                    compact: true,
+                                    onTap: () => _navigateToDetails(complaint),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
                     );
                   },
                 );
@@ -208,6 +325,31 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     return sorted;
   }
 
+  Map<String, List<Complaint>> _groupComplaintsByCategory(
+    List<Complaint> complaints,
+  ) {
+    final grouped = <String, List<Complaint>>{};
+    for (final complaint in complaints) {
+      final key = _displayIssueType(complaint);
+      grouped.putIfAbsent(key, () => <Complaint>[]).add(complaint);
+    }
+    return grouped;
+  }
+
+  String _displayIssueType(Complaint complaint) {
+    final aiIssueType = complaint.aiAnalysis?.issueType?.trim();
+    if (aiIssueType != null && aiIssueType.isNotEmpty) {
+      return aiIssueType
+          .split('_')
+          .where((e) => e.isNotEmpty)
+          .map((word) => '${word[0].toUpperCase()}${word.substring(1)}')
+          .join(' ');
+    }
+    final category = complaint.category.trim();
+    if (category.isNotEmpty) return category;
+    return 'Unknown';
+  }
+
   void _navigateToDetails(Complaint complaint) {
     Navigator.push(
       context,
@@ -221,25 +363,32 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 class _ComplaintCard extends StatelessWidget {
   final Complaint complaint;
   final VoidCallback onTap;
+  final bool compact;
 
   const _ComplaintCard({
     required this.complaint,
     required this.onTap,
+    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final issueTypeLabel = _displayIssueType(complaint);
+    final imageSize = compact ? 64.0 : 80.0;
     return Card(
-      color: Colors.white,
-      elevation: 2,
+      color: compact ? const Color(0xFFFCFCFC) : Colors.white,
+      elevation: compact ? 0.8 : 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: compact
+            ? const BorderSide(color: Color(0xFFEDEDED))
+            : BorderSide.none,
       ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(compact ? 10 : 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -249,15 +398,28 @@ class _ComplaintCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
                     complaint.imageUrls.first,
-                    width: 80,
-                    height: 80,
+                    width: imageSize,
+                    height: imageSize,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
-                      width: 80,
-                      height: 80,
+                      width: imageSize,
+                      height: imageSize,
                       color: Colors.grey[300],
                       child: const Icon(Icons.image_not_supported),
                     ),
+                  ),
+                ),
+              if (complaint.imageUrls.isEmpty)
+                Container(
+                  width: imageSize,
+                  height: imageSize,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F0F0),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.image_outlined,
+                    color: Colors.grey,
                   ),
                 ),
               const SizedBox(width: 12),
@@ -269,8 +431,11 @@ class _ComplaintCard extends StatelessWidget {
                   children: [
                     // Category
                     Text(
-                      complaint.category,
-                      style: semiBoldStyle(fontSize: 16, color: Colors.black87),
+                      issueTypeLabel,
+                      style: semiBoldStyle(
+                        fontSize: compact ? 15 : 16,
+                        color: Colors.black87,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     
@@ -279,7 +444,10 @@ class _ComplaintCard extends StatelessWidget {
                       complaint.description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: regularStyle(fontSize: 14, color: Colors.black54),
+                      style: regularStyle(
+                        fontSize: compact ? 13 : 14,
+                        color: Colors.black54,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     
@@ -324,6 +492,20 @@ class _ComplaintCard extends StatelessWidget {
     } else {
       return 'Just now';
     }
+  }
+
+  String _displayIssueType(Complaint complaint) {
+    final aiIssueType = complaint.aiAnalysis?.issueType?.trim();
+    if (aiIssueType != null && aiIssueType.isNotEmpty) {
+      return aiIssueType
+          .split('_')
+          .where((e) => e.isNotEmpty)
+          .map((word) => '${word[0].toUpperCase()}${word.substring(1)}')
+          .join(' ');
+    }
+    final category = complaint.category.trim();
+    if (category.isNotEmpty) return category;
+    return 'Unknown';
   }
 }
 

@@ -99,10 +99,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final medium = complaints.where((c) => c.priority.toLowerCase() == 'medium').length;
     final low = complaints.where((c) => c.priority.toLowerCase() == 'low').length;
 
-    // Category counts
+    // Classification counts (AI issue type first)
     final categoryMap = <String, int>{};
     for (var complaint in complaints) {
-      categoryMap[complaint.category] = (categoryMap[complaint.category] ?? 0) + 1;
+      final key = _statisticsClassificationLabel(complaint);
+      categoryMap[key] = (categoryMap[key] ?? 0) + 1;
     }
     final topCategories = categoryMap.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
@@ -119,6 +120,21 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       'low': low,
       'categories': topCategories.take(5).toList(),
     };
+  }
+
+  String _statisticsClassificationLabel(Complaint complaint) {
+    final aiIssueType = complaint.aiAnalysis?.issueType?.trim();
+    if (aiIssueType != null && aiIssueType.isNotEmpty) {
+      return aiIssueType
+          .split('_')
+          .where((e) => e.isNotEmpty)
+          .map((word) => '${word[0].toUpperCase()}${word.substring(1)}')
+          .join(' ');
+    }
+
+    final category = complaint.category.trim();
+    if (category.isNotEmpty) return category;
+    return 'Other';
   }
 
   Widget _buildSummaryCards(Map<String, dynamic> stats) {

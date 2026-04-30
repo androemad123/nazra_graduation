@@ -58,6 +58,9 @@ class Issue {
   /// Firestore-compatible last-updated timestamp.
   final Timestamp updatedAt;
 
+  /// List of status change events.
+  final List<StatusHistoryEntry> statusHistory;
+
   Issue({
     required this.id,
     required this.communityId,
@@ -72,6 +75,7 @@ class Issue {
     this.aiAnalysis,
     this.location,
     this.address,
+    this.statusHistory = const [],
     required this.createdAt,
     required this.updatedAt,
   });
@@ -98,6 +102,14 @@ class Issue {
         ? rawImageUrls.whereType<String>().toList()
         : <String>[];
 
+    // Parse status history
+    final rawHistory = map['statusHistory'] as List?;
+    final statusHistory = rawHistory != null
+        ? rawHistory
+            .map((e) => StatusHistoryEntry.fromMap(e as Map<String, dynamic>))
+            .toList()
+        : <StatusHistoryEntry>[];
+
     // Parse votes safely — must be a list of user UID strings
     final rawVotes = map['votes'];
     final parsedVotes = rawVotes is List
@@ -119,6 +131,7 @@ class Issue {
       aiAnalysis: aiAnalysis,
       location: map['location'] as GeoPoint?,
       address: map['address'] as String?,
+      statusHistory: statusHistory,
       createdAt: map['createdAt'] ?? Timestamp.now(),
       updatedAt: map['updatedAt'] ?? Timestamp.now(),
     );
@@ -142,6 +155,7 @@ class Issue {
       if (aiAnalysis != null) 'aiAnalysis': aiAnalysis!.toMap(),
       if (location != null) 'location': location,
       if (address != null) 'address': address,
+      'statusHistory': statusHistory.map((e) => e.toMap()).toList(),
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };
@@ -161,6 +175,7 @@ class Issue {
     String? escalationNote,
     GeoPoint? location,
     String? address,
+    List<StatusHistoryEntry>? statusHistory,
     Timestamp? updatedAt,
   }) {
     return Issue(
@@ -176,6 +191,7 @@ class Issue {
       escalationNote: escalationNote ?? this.escalationNote,
       location: location ?? this.location,
       address: address ?? this.address,
+      statusHistory: statusHistory ?? this.statusHistory,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -239,5 +255,35 @@ class IssueAiAnalysis {
           ? Map<String, dynamic>.from(rawData)
           : <String, dynamic>{},
     );
+  }
+}
+
+/// Represents a single status change event in the history of a complaint or issue.
+class StatusHistoryEntry {
+  /// The status value at this point in time.
+  final String status;
+
+  /// When this status was reached.
+  final Timestamp timestamp;
+
+  StatusHistoryEntry({
+    required this.status,
+    required this.timestamp,
+  });
+
+  /// Creates a [StatusHistoryEntry] from a Firestore map.
+  factory StatusHistoryEntry.fromMap(Map<String, dynamic> map) {
+    return StatusHistoryEntry(
+      status: map['status'] ?? '',
+      timestamp: map['timestamp'] ?? Timestamp.now(),
+    );
+  }
+
+  /// Serialises this entry to a Firestore-compatible map.
+  Map<String, dynamic> toMap() {
+    return {
+      'status': status,
+      'timestamp': timestamp,
+    };
   }
 }

@@ -92,6 +92,12 @@ class IssueRepository {
         'status': 'pending',
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+        'statusHistory': [
+          {
+            'status': 'pending',
+            'timestamp': Timestamp.now(),
+          }
+        ],
         // Only include optional fields when they have values
         if (normalizedAnalysis != null) 'aiAnalysis': normalizedAnalysis,
         if (location != null) 'location': GeoPoint(location.latitude, location.longitude),
@@ -251,10 +257,17 @@ class IssueRepository {
   /// [note] is an optional message explaining the escalation reason.
   Future<void> escalateIssue(String issueId, {String? note}) async {
     try {
+      await _assertCurrentUserIsCommunityOwner(issueId);
       await _issues.doc(issueId).update({
         'status': 'escalated',
         if (note != null) 'escalationNote': note,
         'updatedAt': FieldValue.serverTimestamp(),
+        'statusHistory': FieldValue.arrayUnion([
+          {
+            'status': 'escalated',
+            'timestamp': Timestamp.now(),
+          }
+        ]),
       });
 
       // Fetch the issue to get the owner's UID and title for the notification
@@ -286,10 +299,17 @@ class IssueRepository {
   /// [note] is an optional message describing how the issue was resolved.
   Future<void> resolveIssue(String issueId, {String? note}) async {
     try {
+      await _assertCurrentUserIsCommunityOwner(issueId);
       await _issues.doc(issueId).update({
         'status': 'resolved',
         if (note != null) 'escalationNote': note,
         'updatedAt': FieldValue.serverTimestamp(),
+        'statusHistory': FieldValue.arrayUnion([
+          {
+            'status': 'resolved',
+            'timestamp': Timestamp.now(),
+          }
+        ]),
       });
 
       // Fetch the issue to notify the owner
@@ -325,6 +345,35 @@ class IssueRepository {
     } catch (e) {
       print('Error deleting issue: $e');
       rethrow;
+    }
+  }
+
+  Future<void> _assertCurrentUserIsCommunityOwner(String issueId) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+
+    final issueDoc = await _issues.doc(issueId).get();
+    if (!issueDoc.exists) {
+      throw Exception('Issue not found');
+    }
+
+    final issueData = issueDoc.data() as Map<String, dynamic>;
+    final communityId = issueData['communityId'] as String?;
+    if (communityId == null || communityId.isEmpty) {
+      throw Exception('Issue has no community');
+    }
+
+    final communityDoc = await _firestore.collection('communities').doc(communityId).get();
+    if (!communityDoc.exists) {
+      throw Exception('Community not found');
+    }
+
+    final communityData = communityDoc.data() as Map<String, dynamic>;
+    final ownerId = communityData['ownerId'] as String?;
+    if (ownerId != user.uid) {
+      throw Exception('Only community owner can update issue status');
     }
   }
 }

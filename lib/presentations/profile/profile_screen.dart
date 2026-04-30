@@ -3,6 +3,8 @@ import 'package:app/presentations/profile/widget/profile_stat_card.dart';
 import 'package:app/presentations/profile/widget/profile_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../app/repositories/complaint_repository.dart';
+import '../../../app/repositories/community_repository.dart';
 import '../../../app/bloc/auth/auth_bloc.dart';
 import '../../../app/bloc/auth/auth_event.dart';
 import '../../../app/bloc/auth/auth_state.dart';
@@ -10,6 +12,7 @@ import '../../../routing/routes.dart';
 import '../resources/color_manager.dart';
 import '../resources/styles_manager.dart';
 import 'activity_log_screen.dart';
+import 'help_screen.dart';
 import '../../generated/l10n.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -20,8 +23,31 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final ComplaintRepository _complaintRepository = ComplaintRepository();
+  final CommunityRepository _communityRepository = CommunityRepository();
+
   void _onLogoutPressed(BuildContext context) {
     context.read<AuthBloc>().add(AuthLogoutRequested());
+  }
+
+  Future<_ProfileStats> _loadStats(String userId) async {
+    final complaints = await _complaintRepository.getUserComplaints();
+    final communities = await _communityRepository.watchCommunities().first;
+
+    final joinedCount = communities
+        .where((c) => c.members.contains(userId))
+        .length;
+    final complaintsCount = complaints.length;
+    final points = complaints.fold<int>(
+      0,
+      (sum, c) => sum + ((c['likes'] as num?)?.toInt() ?? 0),
+    );
+
+    return _ProfileStats(
+      points: points,
+      communities: joinedCount,
+      complaints: complaintsCount,
+    );
   }
 
   @override
@@ -44,6 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context, state) {
         final isLoading = state.status == AuthStatus.loading;
         final user = state.user;
+        final isAdmin = user?.role == 'admin';
 
         return Scaffold(
           body: SafeArea(
@@ -76,27 +103,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 28),
 
                     // --- Stats Row ---
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ProfileStatCard(
-                          label: s.points,
-                          value: '0',
-                          icon: Icons.emoji_events_outlined,
-                        ),
-                        ProfileStatCard(
-                          label: s.communities,
-                          value: '1',
-                          icon: Icons.people_alt_outlined,
-                        ),
-                        ProfileStatCard(
-                          label: s.complaints,
-                          value: '1',
-                          icon: Icons.receipt_long_outlined,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 28),
+                    if (!isAdmin && user != null)
+                      FutureBuilder<_ProfileStats>(
+                        future: _loadStats(user.uid),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+
+                          final stats = snapshot.data!;
+                          return Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  ProfileStatCard(
+                                    label: s.points,
+                                    value: '${stats.points}',
+                                    icon: Icons.emoji_events_outlined,
+                                  ),
+                                  ProfileStatCard(
+                                    label: s.communities,
+                                    value: '${stats.communities}',
+                                    icon: Icons.people_alt_outlined,
+                                  ),
+                                  ProfileStatCard(
+                                    label: s.complaints,
+                                    value: '${stats.complaints}',
+                                    icon: Icons.receipt_long_outlined,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 28),
+                            ],
+                          );
+                        },
+                      ),
 
                     // --- Action Tiles ---
                     ProfileTile(
@@ -135,7 +180,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                          MaterialPageRoute(builder: (context) => const HelpScreen()),
                         );
                       },
                     ),
@@ -154,4 +199,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
     );
   }
+}
+
+class _ProfileStats {
+  final int points;
+  final int communities;
+  final int complaints;
+
+  const _ProfileStats({
+    required this.points,
+    required this.communities,
+    required this.complaints,
+  });
 }

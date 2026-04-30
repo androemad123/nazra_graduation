@@ -2,6 +2,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 
+class DuplicateComplaintMatch {
+  final String complaintId;
+  final String? clusterId;
+  final double score;
+  final double distanceMeters;
+  final DateTime createdAt;
+  final String issueType;
+
+  DuplicateComplaintMatch({
+    required this.complaintId,
+    required this.clusterId,
+    required this.score,
+    required this.distanceMeters,
+    required this.createdAt,
+    required this.issueType,
+  });
+}
+
 /// Repository for managing citizen complaints in Firestore.
 ///
 /// Handles all CRUD operations for the `complaints` Firestore collection.
@@ -37,6 +55,9 @@ class ComplaintRepository {
     required Position location,
     required String address,
     Map<String, dynamic>? mlAnalysisResult,
+    String? duplicateOf,
+    double? duplicateConfidence,
+    String? clusterId,
   }) async {
     try {
       final user = _auth.currentUser;
@@ -51,6 +72,13 @@ class ComplaintRepository {
           normalizedAnalysis?['data'] as Map<String, dynamic>? ?? {};
       final derivedPriority =
           (aiDetails['priority'] as String?)?.toLowerCase() ?? 'medium';
+      final issueTypeNormalized = _normalizeIssueType(
+        (aiDetails['issue_type'] as String?) ?? category,
+      );
+      final geoCell = _geoCellFor(
+        latitude: location.latitude,
+        longitude: location.longitude,
+      );
 
       // Status: if AI says it's not an issue, mark accordingly
       final status = aiThinksIssue ? 'pending' : 'not_issue';
@@ -70,8 +98,19 @@ class ComplaintRepository {
         'address': address,
         'status': status,
         'priority': derivedPriority,
+        'issueTypeNormalized': issueTypeNormalized,
+        'geoCell': geoCell,
+        'duplicateOf': duplicateOf,
+        'duplicateConfidence': duplicateConfidence,
+        'clusterId': clusterId ?? complaintId,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+        'statusHistory': [
+          {
+            'status': status,
+            'timestamp': Timestamp.now(),
+          }
+        ],
         // Only include aiAnalysis if the ML service returned a result
         if (normalizedAnalysis != null) 'aiAnalysis': normalizedAnalysis,
       };
@@ -147,9 +186,46 @@ class ComplaintRepository {
       await _firestore.collection('complaints').doc(complaintId).update({
         'status': newStatus,
         'updatedAt': FieldValue.serverTimestamp(),
+        'statusHistory': FieldValue.arrayUnion([
+          {
+            'status': newStatus,
+            'timestamp': Timestamp.now(),
+          }
+        ]),
       });
     } catch (e) {
       print('Error updating complaint status: $e');
+      rethrow;
+    }
+  }
+
+  /// Updates status for multiple complaints in one batch.
+  ///
+  /// Useful for duplicate clusters where canonical status should be propagated.
+  Future<void> updateComplaintStatusesBatch(
+    List<String> complaintIds,
+    String newStatus,
+  ) async {
+    if (complaintIds.isEmpty) return;
+    try {
+      final batch = _firestore.batch();
+      final now = Timestamp.now();
+      for (final id in complaintIds.toSet()) {
+        final ref = _firestore.collection('complaints').doc(id);
+        batch.update(ref, {
+          'status': newStatus,
+          'updatedAt': FieldValue.serverTimestamp(),
+          'statusHistory': FieldValue.arrayUnion([
+            {
+              'status': newStatus,
+              'timestamp': now,
+            }
+          ]),
+        });
+      }
+      await batch.commit();
+    } catch (e) {
+      print('Error updating complaint statuses batch: $e');
       rethrow;
     }
   }
@@ -171,6 +247,147 @@ class ComplaintRepository {
               })
           .toList();
     });
+  }
+
+  /// Finds potential duplicate complaints using issue type + recency query,
+  /// then computes local score with distance/time/description overlap.
+  Future<List<DuplicateComplaintMatch>> findPotentialDuplicates({
+    required String issueTypeOrCategory,
+    required double latitude,
+    required double longitude,
+    required DateTime now,
+    required String description,
+  }) async {
+    final normalizedType = _normalizeIssueType(issueTypeOrCategory);
+    final since = now.subtract(const Duration(days: 14));
+
+    final snap = await _firestore
+        .collection('complaints')
+        .where('issueTypeNormalized', isEqualTo: normalizedType)
+        .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(since))
+        .orderBy('createdAt', descending: true)
+        .limit(80)
+        .get();
+
+    final sourceTokens = _tokens(description);
+    final results = <DuplicateComplaintMatch>[];
+
+    for (final doc in snap.docs) {
+      final data = doc.data();
+      final point = data['location'];
+      if (point is! GeoPoint) continue;
+      final createdAtTs = data['createdAt'] as Timestamp?;
+      if (createdAtTs == null) continue;
+
+      final distance = Geolocator.distanceBetween(
+        latitude,
+        longitude,
+        point.latitude,
+        point.longitude,
+      );
+      final ageDays = now.difference(createdAtTs.toDate()).inDays;
+      final distanceScore = _distanceScore(distance);
+      final timeScore = _timeScore(ageDays);
+      final textScore = _textSimilarity(sourceTokens, _tokens((data['description'] ?? '').toString()));
+      final score = (0.5 * distanceScore) + (0.3 * timeScore) + (0.2 * textScore);
+
+      if (score >= 0.45) {
+        results.add(
+          DuplicateComplaintMatch(
+            complaintId: doc.id,
+            clusterId: data['clusterId']?.toString(),
+            score: score,
+            distanceMeters: distance,
+            createdAt: createdAtTs.toDate(),
+            issueType: normalizedType,
+          ),
+        );
+      }
+    }
+
+    results.sort((a, b) => b.score.compareTo(a.score));
+    return results;
+  }
+
+  Future<void> markAsDuplicate({
+    required String complaintId,
+    required String canonicalComplaintId,
+    required double confidence,
+  }) async {
+    String canonicalClusterId = canonicalComplaintId;
+    final canonicalDoc = await _firestore.collection('complaints').doc(canonicalComplaintId).get();
+    if (canonicalDoc.exists) {
+      canonicalClusterId = (canonicalDoc.data()?['clusterId']?.toString().trim().isNotEmpty ?? false)
+          ? canonicalDoc.data()!['clusterId'].toString()
+          : canonicalComplaintId;
+    }
+
+    await _firestore.collection('complaints').doc(complaintId).update({
+      'duplicateOf': canonicalComplaintId,
+      'duplicateConfidence': confidence,
+      'clusterId': canonicalClusterId,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  String _normalizeIssueType(String raw) {
+    return raw.trim().toLowerCase().replaceAll(' ', '_');
+  }
+
+  String _geoCellFor({required double latitude, required double longitude}) {
+    final latBucket = (latitude * 100).round();
+    final lonBucket = (longitude * 100).round();
+    return '${latBucket}_$lonBucket';
+  }
+
+  double _distanceScore(double meters) {
+    if (meters <= 80) return 1.0;
+    if (meters <= 150) return 0.8;
+    if (meters <= 250) return 0.6;
+    if (meters <= 350) return 0.4;
+    return 0.1;
+  }
+
+  double _timeScore(int ageDays) {
+    if (ageDays <= 1) return 1.0;
+    if (ageDays <= 3) return 0.8;
+    if (ageDays <= 7) return 0.6;
+    if (ageDays <= 14) return 0.4;
+    return 0.1;
+  }
+
+  Set<String> _tokens(String text) {
+    return text
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9\u0600-\u06FF\s]'), ' ')
+        .split(RegExp(r'\s+'))
+        .where((t) => t.length > 2)
+        .toSet();
+  }
+
+  double _textSimilarity(Set<String> a, Set<String> b) {
+    if (a.isEmpty || b.isEmpty) return 0.0;
+    final inter = a.intersection(b).length.toDouble();
+    final union = a.union(b).length.toDouble();
+    if (union == 0) return 0.0;
+    return inter / union;
+  }
+
+  /// Fetches a single complaint by document ID.
+  ///
+  /// Returns null when the document does not exist.
+  Future<Map<String, dynamic>?> getComplaintById(String complaintId) async {
+    try {
+      final doc = await _firestore.collection('complaints').doc(complaintId).get();
+      if (!doc.exists) return null;
+      return {
+        'id': doc.id,
+        ...doc.data()!,
+      };
+    } catch (e) {
+      print('Error getting complaint by id: $e');
+      return null;
+    }
   }
 
   /// Normalises the raw ML API response into a consistent Firestore-safe structure.

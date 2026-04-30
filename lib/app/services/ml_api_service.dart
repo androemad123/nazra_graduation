@@ -82,7 +82,18 @@ class MlApiService {
         description: description,
         category: category,
       );
+      
+      print('--- ML API Request ---');
+      print('URL: $uri');
+      print('Method: POST');
+      
       final response = await http.post(uri);
+
+      print('--- ML API Response ---');
+      print('Status Code: ${response.statusCode}');
+      print('Headers: ${response.headers}');
+      print('Body: ${response.body}');
+      print('-----------------------');
 
       if (response.statusCode == 200) {
         // Decode and return the JSON response

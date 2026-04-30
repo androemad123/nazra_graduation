@@ -460,15 +460,56 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
         category: widget.category,
       );
 
-      Map<String, dynamic>? normalizedMl;
-      if (mlResult != null) {
-        final aiData = mlResult['data'];
-        normalizedMl = {
-          'is_issue': mlResult['is_issue'] ?? true,
-          'data': aiData is Map<String, dynamic>
-              ? Map<String, dynamic>.from(aiData)
-              : <String, dynamic>{},
-        };
+      if (mlResult == null) {
+        throw Exception(S.of(context).aiAnalysisFailed);
+      }
+
+      final rawIsIssue = mlResult['is_issue'];
+      final bool isIssue;
+      if (rawIsIssue is bool) {
+        isIssue = rawIsIssue;
+      } else if (rawIsIssue is String) {
+        isIssue = rawIsIssue.toLowerCase() == 'true';
+      } else if (rawIsIssue is int) {
+        isIssue = rawIsIssue == 1;
+      } else {
+        isIssue = true;
+      }
+      
+      if (!isIssue) {
+        throw Exception(S.of(context).imageNotValidIssue);
+      }
+
+      final aiData = mlResult['data'];
+      final normalizedMl = {
+        'is_issue': isIssue,
+        'data': aiData is Map<String, dynamic>
+            ? Map<String, dynamic>.from(aiData)
+            : <String, dynamic>{},
+      };
+
+      // ── 2.5 Duplicate detection (admin-only, no user interruption) ─────
+      String? duplicateOf;
+      double? duplicateConfidence;
+      String? clusterId;
+      final issueTypeOrCategory =
+          (normalizedMl['data'] as Map<String, dynamic>)['issue_type']?.toString() ??
+              widget.category;
+      final candidates = await widget.complaintRepository.findPotentialDuplicates(
+        issueTypeOrCategory: issueTypeOrCategory,
+        latitude: widget.position.latitude as double,
+        longitude: widget.position.longitude as double,
+        now: DateTime.now(),
+        description: widget.description,
+      );
+
+      if (candidates.isNotEmpty) {
+        final best = candidates.first;
+        if (best.score >= 0.75) {
+          duplicateOf = best.complaintId;
+          duplicateConfidence = best.score;
+          clusterId = best.clusterId ?? best.complaintId;
+        }
       }
 
       // ── 3. Save to Firestore ─────────────────────────────────────────────
@@ -480,6 +521,9 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
         location: widget.position,
         address: widget.address!,
         mlAnalysisResult: normalizedMl,
+        duplicateOf: duplicateOf,
+        duplicateConfidence: duplicateConfidence,
+        clusterId: clusterId,
       );
 
       if (complaintId == null) {
@@ -721,3 +765,4 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
     );
   }
 }
+

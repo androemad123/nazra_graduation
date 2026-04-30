@@ -47,6 +47,15 @@ class Complaint {
   /// Firestore ID of the community this complaint is associated with (if any).
   final String? communityId;
 
+  /// If this complaint is considered a duplicate, points to the canonical complaint ID.
+  final String? duplicateOf;
+
+  /// Confidence score (0..1) for duplicate detection decision, if available.
+  final double? duplicateConfidence;
+
+  /// Grouping key for duplicate clusters.
+  final String? clusterId;
+
   /// Structured result of the ML API image analysis. May be null for legacy records.
   final ComplaintAiAnalysis? aiAnalysis;
 
@@ -62,6 +71,9 @@ class Complaint {
   /// Firestore-compatible last-updated timestamp.
   final Timestamp updatedAt;
 
+  /// List of status change events.
+  final List<StatusHistoryEntry> statusHistory;
+
   Complaint({
     required this.id,
     required this.userId,
@@ -74,9 +86,13 @@ class Complaint {
     required this.priority,
     this.assignedOfficerId,
     this.communityId,
+    this.duplicateOf,
+    this.duplicateConfidence,
+    this.clusterId,
     this.aiAnalysis,
     this.resolutionNote,
     this.likes = 0,
+    this.statusHistory = const [],
     required this.createdAt,
     required this.updatedAt,
   });
@@ -104,6 +120,14 @@ class Complaint {
       parsedImages.add(fallbackImage);
     }
 
+    // Parse status history
+    final rawHistory = map['statusHistory'] as List?;
+    final statusHistory = rawHistory != null
+        ? rawHistory
+            .map((e) => StatusHistoryEntry.fromMap(e as Map<String, dynamic>))
+            .toList()
+        : <StatusHistoryEntry>[];
+
     return Complaint(
       id: map['id'] ?? docId, // Prefer stored ID, fallback to docId for backward compatibility
       userId: map['userId'] ?? '',
@@ -118,9 +142,13 @@ class Complaint {
           (map['priority'] ?? aiAnalysis?.priority ?? 'medium').toString(),
       assignedOfficerId: map['assignedOfficerId'],
       communityId: map['communityId'],
+      duplicateOf: map['duplicateOf'],
+      duplicateConfidence: (map['duplicateConfidence'] as num?)?.toDouble(),
+      clusterId: map['clusterId'],
       aiAnalysis: aiAnalysis,
       resolutionNote: map['resolutionNote'],
       likes: map['likes'] ?? 0,
+      statusHistory: statusHistory,
       createdAt: map['createdAt'] ?? Timestamp.now(),
       updatedAt: map['updatedAt'] ?? Timestamp.now(),
     );
@@ -141,9 +169,13 @@ class Complaint {
       'priority': priority,
       'assignedOfficerId': assignedOfficerId,
       'communityId': communityId,
+      'duplicateOf': duplicateOf,
+      'duplicateConfidence': duplicateConfidence,
+      'clusterId': clusterId,
       if (aiAnalysis != null) 'aiAnalysis': aiAnalysis!.toMap(),
       'resolutionNote': resolutionNote,
       'likes': likes,
+      'statusHistory': statusHistory.map((e) => e.toMap()).toList(),
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };
@@ -336,5 +368,35 @@ class ComplaintAiAnalysis {
           ? Map<String, dynamic>.from(rawData)
           : <String, dynamic>{},
     );
+  }
+}
+
+/// Represents a single status change event in the history of a complaint or issue.
+class StatusHistoryEntry {
+  /// The status value at this point in time.
+  final String status;
+
+  /// When this status was reached.
+  final Timestamp timestamp;
+
+  StatusHistoryEntry({
+    required this.status,
+    required this.timestamp,
+  });
+
+  /// Creates a [StatusHistoryEntry] from a Firestore map.
+  factory StatusHistoryEntry.fromMap(Map<String, dynamic> map) {
+    return StatusHistoryEntry(
+      status: map['status'] ?? '',
+      timestamp: map['timestamp'] ?? Timestamp.now(),
+    );
+  }
+
+  /// Serialises this entry to a Firestore-compatible map.
+  Map<String, dynamic> toMap() {
+    return {
+      'status': status,
+      'timestamp': timestamp,
+    };
   }
 }

@@ -6,6 +6,9 @@ import '../resources/color_manager.dart';
 import '../resources/styles_manager.dart';
 import '../../generated/l10n.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../app/repositories/complaint_feedback_repository.dart';
 
 class ComplaintDetailsScreen extends StatelessWidget {
   final Complaint complaint;
@@ -15,31 +18,10 @@ class ComplaintDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
+    final issueTypeLabel = _displayIssueType(complaint);
+    final canReportDelay = _canReportDelay(complaint);
     // Define your step data
-    final steps = [
-      {
-        'title': s.statusNew,
-        'date': '22 Sep, 10:30 PM',
-        'description': s.reportReceived,
-      },
-      {
-        'title': s.statusUnderReview,
-        'date': '25 Sep, 08:30 AM',
-        'description': s.reportReviewedClassified,
-      },
-      {
-        'title': s.inProgress,
-        'date': '27 Sep, 10:00 AM',
-        'description': s.teamStartedSolving,
-      },
-      {
-        'title': s.fixed,
-        'date': '27 Sep, 03:00 PM',
-        'description': s.issueResolved,
-      },
-    ];
 
-    // Determine current step based on complaint.status
     int currentStep;
     switch (complaint.status) {
       case 'pending':
@@ -58,6 +40,39 @@ class ComplaintDetailsScreen extends StatelessWidget {
       default:
         currentStep = 0;
     }
+
+    final steps = [
+      {
+        'title': s.statusNew,
+        'date': DateFormat('d MMM, hh:mm a').format(complaint.createdAt.toDate()),
+        'description': s.reportReceived,
+      },
+      {
+        'title': s.statusUnderReview,
+        'date': _getStatusDate(complaint.statusHistory, 'in_review', s,
+            isPassed: currentStep >= 1,
+            subsequentStatuses: ['in_progress', 'resolved', 'not_issue'],
+            fallback: complaint.updatedAt),
+        'description': s.reportReviewedClassified,
+      },
+      {
+        'title': s.inProgress,
+        'date': _getStatusDate(complaint.statusHistory, 'in_progress', s,
+            isPassed: currentStep >= 2,
+            subsequentStatuses: ['resolved', 'not_issue'],
+            fallback: complaint.updatedAt),
+        'description': s.teamStartedSolving,
+      },
+      {
+        'title': s.fixed,
+        'date': _getStatusDate(complaint.statusHistory, 'resolved', s,
+            isPassed: currentStep >= 3,
+            fallback: (complaint.status == 'resolved' || complaint.status == 'not_issue') ? complaint.updatedAt : null),
+        'description': s.issueResolved,
+      },
+    ];
+
+    // Determine current step based on complaint.status
 
     return Scaffold(
       appBar: AppBar(
@@ -110,7 +125,7 @@ class ComplaintDetailsScreen extends StatelessWidget {
                         children: [
                           _buildInfoRow(s.reportNumber, "#RE_${complaint.id}"),
                           SizedBox(height: 6.h),
-                          _buildInfoRow(s.category, complaint.category),
+                          _buildInfoRow(s.category, issueTypeLabel),
                           SizedBox(height: 6.h),
                           _buildInfoRow(
                             s.submissionDate,
@@ -127,6 +142,41 @@ class ComplaintDetailsScreen extends StatelessWidget {
             ),
 
             SizedBox(height: 20.h),
+
+            /// 🖼️ Images Section
+            if (complaint.imageUrls.isNotEmpty) ...[
+              SizedBox(
+                height: 200.h,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: complaint.imageUrls.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: EdgeInsets.only(right: 12.w),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16.r),
+                        child: CachedNetworkImage(
+                          imageUrl: complaint.imageUrls[index],
+                          width: 300.w,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            width: 300.w,
+                            color: ColorManager.lighterBeige,
+                            child: const Center(child: CircularProgressIndicator()),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            width: 300.w,
+                            color: ColorManager.lighterBeige,
+                            child: const Icon(Icons.error),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: 20.h),
+            ],
 
             /// 📊 Report Status
             Text(
@@ -155,6 +205,17 @@ class ComplaintDetailsScreen extends StatelessWidget {
           ],
         ),
       ),
+      floatingActionButton: canReportDelay
+          ? FloatingActionButton.extended(
+              onPressed: () => _showDelayFeedbackDialog(context),
+              backgroundColor: ColorManager.brown,
+              icon: const Icon(Icons.report_gmailerrorred, color: Colors.white),
+              label: Text(
+                s.reportDelay,
+                style: const TextStyle(color: Colors.white),
+              ),
+            )
+          : null,
     );
   }
 
@@ -182,5 +243,117 @@ class ComplaintDetailsScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _displayIssueType(Complaint complaint) {
+    final aiIssueType = complaint.aiAnalysis?.issueType?.trim();
+    if (aiIssueType != null && aiIssueType.isNotEmpty) {
+      return aiIssueType
+          .split('_')
+          .where((e) => e.isNotEmpty)
+          .map((word) => '${word[0].toUpperCase()}${word.substring(1)}')
+          .join(' ');
+    }
+    final category = complaint.category.trim();
+    if (category.isNotEmpty) return category;
+    return 'Unknown';
+  }
+
+  String _getStatusDate(List<StatusHistoryEntry> history, String status, S s,
+      {bool isPassed = false, List<String> subsequentStatuses = const [], Timestamp? fallback}) {
+    try {
+      final entry = history.firstWhere((e) => e.status == status);
+      return DateFormat('d MMM, hh:mm a').format(entry.timestamp.toDate());
+    } catch (_) {
+      // If the target status is missing but we've moved past it,
+      // find the EARLIEST change that moved us beyond this step.
+      if (subsequentStatuses.isNotEmpty) {
+        final passEntries = history.where((e) => subsequentStatuses.contains(e.status)).toList();
+        if (passEntries.isNotEmpty) {
+          passEntries.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+          return DateFormat('d MMM, hh:mm a').format(passEntries.first.timestamp.toDate());
+        }
+      }
+
+      if (isPassed && fallback != null) {
+        return DateFormat('d MMM, hh:mm a').format(fallback.toDate());
+      }
+      return s.pending;
+    }
+  }
+
+  bool _canReportDelay(Complaint complaint) {
+    final status = complaint.status.toLowerCase();
+    if (status == 'resolved' || status == 'fixed' || status == 'not_issue') {
+      return false;
+    }
+    final ageDays = DateTime.now().difference(complaint.createdAt.toDate()).inDays;
+    return ageDays >= _thresholdDaysByPriority(complaint.priority);
+  }
+
+  int _thresholdDaysByPriority(String priority) {
+    switch (priority.toLowerCase()) {
+      case 'emergency':
+      case 'high':
+        return 1;
+      case 'medium':
+        return 4;
+      case 'low':
+      default:
+        return 7;
+    }
+  }
+
+  Future<void> _showDelayFeedbackDialog(BuildContext context) async {
+    final s = S.of(context);
+    final ctrl = TextEditingController();
+
+    final bool? submit = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(s.reportDelay),
+        content: TextField(
+          controller: ctrl,
+          maxLines: 4,
+          decoration: InputDecoration(
+            hintText: s.feedbackOptionalMessage,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(s.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(s.submit),
+          ),
+        ],
+      ),
+    );
+
+    if (submit != true) return;
+
+    try {
+      await ComplaintFeedbackRepository().submitDelayFeedback(
+        complaintId: complaint.id,
+        complaintPriority: complaint.priority,
+        complaintCreatedAt: complaint.createdAt.toDate(),
+        immediateActionRequired: complaint.aiAnalysis?.immediateActionRequired ?? false,
+        safetyHazard: complaint.aiAnalysis?.safetyHazard ?? false,
+        message: ctrl.text,
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(s.feedbackSent)),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${s.error}: $e')),
+        );
+      }
+    }
   }
 }

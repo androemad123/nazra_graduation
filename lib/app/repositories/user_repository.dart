@@ -58,4 +58,31 @@ class UserRepository {
       return [];
     }
   }
+
+  /// Updates editable personal info fields for a user.
+  ///
+  /// Only writes provided fields. Empty strings are stored as null.
+  Future<void> updatePersonalInfo({
+    required String uid,
+    String? displayName,
+    String? phoneNumber,
+  }) async {
+    final updates = <String, dynamic>{
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+
+    if (displayName != null) {
+      final trimmed = displayName.trim();
+      updates['displayName'] = trimmed.isEmpty ? null : trimmed;
+    }
+    if (phoneNumber != null) {
+      final trimmed = phoneNumber.trim();
+      updates['phoneNumber'] = trimmed.isEmpty ? null : trimmed;
+    }
+
+    await _firestore.collection('users').doc(uid).set(
+      updates,
+      SetOptions(merge: true),
+    );
+  }
 }

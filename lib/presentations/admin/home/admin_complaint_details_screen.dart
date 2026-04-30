@@ -14,20 +14,36 @@ class AdminComplaintDetailsScreen extends StatefulWidget {
 
   const AdminComplaintDetailsScreen({super.key, required this.complaint});
 
+
   @override
   State<AdminComplaintDetailsScreen> createState() =>
       _AdminComplaintDetailsScreenState();
-}
 
+}
+String _displayIssueType(Complaint complaint) {
+  final aiIssueType = complaint.aiAnalysis?.issueType?.trim();
+  if (aiIssueType != null && aiIssueType.isNotEmpty) {
+    return aiIssueType
+        .split('_')
+        .where((e) => e.isNotEmpty)
+        .map((word) => '${word[0].toUpperCase()}${word.substring(1)}')
+        .join(' ');
+  }
+  final category = complaint.category.trim();
+  if (category.isNotEmpty) return category;
+  return 'Unknown';
+}
 class _AdminComplaintDetailsScreenState
     extends State<AdminComplaintDetailsScreen> {
   final ComplaintRepository _repository = ComplaintRepository();
+
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
     final complaint = widget.complaint;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final issueTypeLabel = _displayIssueType(widget.complaint);
 
     return Scaffold(
       appBar: AppBar(
@@ -76,7 +92,7 @@ class _AdminComplaintDetailsScreenState
               children: [
                 Expanded(
                   child: Text(
-                    complaint.category,
+                    issueTypeLabel,
                     style: boldStyle(fontSize: 22.sp, color: ColorManager.brown),
                   ),
                 ),
@@ -258,10 +274,42 @@ class _AdminComplaintDetailsScreenState
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showStatusUpdateDialog(),
+        onPressed: () => _showActionsSheet(),
         backgroundColor: ColorManager.brown,
         icon: const Icon(Icons.edit, color: Colors.white),
         label: Text(s.updateStatus, style: const TextStyle(color: Colors.white)),
+      ),
+    );
+  }
+
+  Future<void> _showActionsSheet() async {
+    final s = S.of(context);
+    await showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(s.updateStatus),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showStatusUpdateDialog();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.link_outlined),
+              title: Text(s.markAsDuplicate),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showMarkDuplicateDialog();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -382,6 +430,75 @@ class _AdminComplaintDetailsScreenState
         );
       }
     }
+  }
+
+  Future<void> _showMarkDuplicateDialog() async {
+    final s = S.of(context);
+    final all = await _repository.getAllComplaints();
+    final suggestions = all
+        .map((m) => Complaint.fromMap(m, m['id'] ?? ''))
+        .where((c) =>
+            c.id != widget.complaint.id &&
+            (c.aiAnalysis?.issueType == widget.complaint.aiAnalysis?.issueType))
+        .toList();
+
+    if (!mounted) return;
+    if (suggestions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(s.noDataAvailable)),
+      );
+      return;
+    }
+
+    String selectedId = suggestions.first.id;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(s.markAsDuplicate),
+        content: StatefulBuilder(
+          builder: (context, setLocal) {
+            return DropdownButton<String>(
+              isExpanded: true,
+              value: selectedId,
+              items: suggestions
+                  .map(
+                    (c) => DropdownMenuItem(
+                      value: c.id,
+                      child: Text('${c.id} • ${c.description}'),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (v) {
+                if (v == null) return;
+                setLocal(() => selectedId = v);
+              },
+            );
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(s.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(s.save),
+          ),
+        ],
+      ),
+    );
+
+    if (result != true) return;
+    await _repository.markAsDuplicate(
+      complaintId: widget.complaint.id,
+      canonicalComplaintId: selectedId,
+      confidence: 0.9,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(s.duplicateMarkedSuccess)),
+    );
+    Navigator.pop(context);
   }
 }
 

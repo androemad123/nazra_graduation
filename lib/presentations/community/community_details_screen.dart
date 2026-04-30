@@ -463,14 +463,33 @@ class CommunityDetailsScreen extends StatelessWidget {
         ),
 
         /// ================= FAB =================
-        floatingActionButton: Builder(
-          builder: (context) {
+        floatingActionButton: StreamBuilder<Community?>(
+          stream: communityRepo.watchCommunity(communityId),
+          builder: (context, snap) {
+            final community = snap.data;
+            final isMember = community?.members.contains(currentUserId) ?? false;
+
+            if (!isMember) {
+              return const SizedBox.shrink();
+            }
+
             return FloatingActionButton(
               onPressed: () {
                 if (currentUserId.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Please login to add an issue'),
+                    ),
+                  );
+                  return;
+                }
+
+                final latestCommunity = community;
+                final stillMember = latestCommunity?.members.contains(currentUserId) ?? false;
+                if (!stillMember) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Only community members can add issues'),
                     ),
                   );
                   return;

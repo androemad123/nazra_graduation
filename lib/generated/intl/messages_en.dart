@@ -35,6 +35,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "addPhotos": MessageLookupByLibrary.simpleMessage("Add photos"),
     "ago": MessageLookupByLibrary.simpleMessage("ago"),
+    "aiAnalysisFailed": MessageLookupByLibrary.simpleMessage(
+      "AI analysis failed. Please try again.",
+    ),
     "aiAnalysisTitle": MessageLookupByLibrary.simpleMessage("AI Analysis"),
     "aiConfidence": MessageLookupByLibrary.simpleMessage("AI Confidence"),
     "aiSummary": MessageLookupByLibrary.simpleMessage("AI Summary:"),
@@ -62,6 +65,8 @@ class MessageLookup extends MessageLookupByLibrary {
       "Click to add images",
     ),
     "close": MessageLookupByLibrary.simpleMessage("Close"),
+    "clusterItemsCount": MessageLookupByLibrary.simpleMessage("Items"),
+    "clusterLabel": MessageLookupByLibrary.simpleMessage("Cluster"),
     "communities": MessageLookupByLibrary.simpleMessage("Communities"),
     "communityDescLabel": MessageLookupByLibrary.simpleMessage("Description"),
     "communityNameLabel": MessageLookupByLibrary.simpleMessage("Name"),
@@ -69,9 +74,11 @@ class MessageLookup extends MessageLookupByLibrary {
       "Community Updates",
     ),
     "communityVotes": MessageLookupByLibrary.simpleMessage("Community Votes"),
+    "complaintAgeDays": MessageLookupByLibrary.simpleMessage("Age (days)"),
     "complaintDetails": MessageLookupByLibrary.simpleMessage(
       "Complaint Details",
     ),
+    "complaintIdLabel": MessageLookupByLibrary.simpleMessage("Complaint ID"),
     "complaintManagement": MessageLookupByLibrary.simpleMessage(
       "Complaint Management",
     ),
@@ -111,6 +118,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "dontHaveAccount": MessageLookupByLibrary.simpleMessage(
       "Don\'t have an account? ",
     ),
+    "duplicateClusters": MessageLookupByLibrary.simpleMessage(
+      "Duplicate clusters",
+    ),
+    "duplicateDistanceLabel": MessageLookupByLibrary.simpleMessage("Distance"),
+    "duplicateMarkedSuccess": MessageLookupByLibrary.simpleMessage(
+      "Complaint marked as duplicate",
+    ),
+    "duplicatePotentialBody": MessageLookupByLibrary.simpleMessage(
+      "A similar complaint appears to already exist nearby.",
+    ),
+    "duplicatePotentialTitle": MessageLookupByLibrary.simpleMessage(
+      "Possible duplicate found",
+    ),
+    "duplicateScoreLabel": MessageLookupByLibrary.simpleMessage("Similarity"),
     "editPersonalInfo": MessageLookupByLibrary.simpleMessage(
       "Edit Personal Info",
     ),
@@ -128,6 +149,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "failedUploadImages": MessageLookupByLibrary.simpleMessage(
       "Failed to upload images. Please try again.",
     ),
+    "feedbackInbox": MessageLookupByLibrary.simpleMessage("Feedback Inbox"),
+    "feedbackOptionalMessage": MessageLookupByLibrary.simpleMessage(
+      "Add an optional message to admin...",
+    ),
+    "feedbackSent": MessageLookupByLibrary.simpleMessage(
+      "Feedback sent to admin",
+    ),
     "fixed": MessageLookupByLibrary.simpleMessage("Fixed"),
     "forgotPassword": MessageLookupByLibrary.simpleMessage("Forgot password?"),
     "fullNameHint": MessageLookupByLibrary.simpleMessage("Full name"),
@@ -136,6 +164,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "home": MessageLookupByLibrary.simpleMessage("Home"),
     "homeSubtitle": MessageLookupByLibrary.simpleMessage(
       "Your report makes the difference",
+    ),
+    "imageNotValidIssue": MessageLookupByLibrary.simpleMessage(
+      "The AI determined the image is not a valid issue.",
     ),
     "inProgress": MessageLookupByLibrary.simpleMessage("In Progress"),
     "isValidIssue": MessageLookupByLibrary.simpleMessage("Is Valid Issue?"),
@@ -151,6 +182,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "issueUnderReview": MessageLookupByLibrary.simpleMessage(
       "The issue is being reviewed by the community/admin",
     ),
+    "joinExisting": MessageLookupByLibrary.simpleMessage("Join existing"),
     "justNow": MessageLookupByLibrary.simpleMessage("Just now"),
     "language": MessageLookupByLibrary.simpleMessage("Language"),
     "lastUpdated": MessageLookupByLibrary.simpleMessage("Last Updated"),
@@ -170,6 +202,10 @@ class MessageLookup extends MessageLookupByLibrary {
     "logoutFailed": MessageLookupByLibrary.simpleMessage("Logout failed"),
     "low": MessageLookupByLibrary.simpleMessage("Low"),
     "markAllAsRead": MessageLookupByLibrary.simpleMessage("Mark all as read"),
+    "markAsDuplicate": MessageLookupByLibrary.simpleMessage(
+      "Mark as duplicate",
+    ),
+    "markResolved": MessageLookupByLibrary.simpleMessage("Mark resolved"),
     "medium": MessageLookupByLibrary.simpleMessage("Medium"),
     "metadata": MessageLookupByLibrary.simpleMessage("Metadata"),
     "myComplaints": MessageLookupByLibrary.simpleMessage("My Complaints"),
@@ -190,8 +226,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "noDataAvailable": MessageLookupByLibrary.simpleMessage(
       "No data available",
     ),
+    "noDuplicateClusters": MessageLookupByLibrary.simpleMessage(
+      "No duplicate clusters yet",
+    ),
+    "noFeedbackYet": MessageLookupByLibrary.simpleMessage("No feedback yet"),
     "noFilteredComplaints": MessageLookupByLibrary.simpleMessage(
       "No complaints match the selected filters",
+    ),
+    "noMessageProvided": MessageLookupByLibrary.simpleMessage(
+      "No message provided",
     ),
     "noNotificationsYet": MessageLookupByLibrary.simpleMessage(
       "No notifications yet",
@@ -212,6 +255,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "onboardTitle3": MessageLookupByLibrary.simpleMessage(
       "Follow the Progress",
     ),
+    "open": MessageLookupByLibrary.simpleMessage("Open"),
     "orContinueWith": MessageLookupByLibrary.simpleMessage("Or continue with"),
     "orSignupWith": MessageLookupByLibrary.simpleMessage("Or sign up with"),
     "passwordHint": MessageLookupByLibrary.simpleMessage("Password"),
@@ -261,6 +305,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "progress": MessageLookupByLibrary.simpleMessage("Progress"),
     "rememberMe": MessageLookupByLibrary.simpleMessage("Remember me"),
     "removeVote": MessageLookupByLibrary.simpleMessage("Remove Vote"),
+    "reportDelay": MessageLookupByLibrary.simpleMessage("Report delay"),
     "reportNumber": MessageLookupByLibrary.simpleMessage("Report number"),
     "reportReceived": MessageLookupByLibrary.simpleMessage("Report received"),
     "reportReviewedClassified": MessageLookupByLibrary.simpleMessage(
@@ -272,6 +317,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "retry": MessageLookupByLibrary.simpleMessage("Retry"),
     "rewards": MessageLookupByLibrary.simpleMessage("Rewards"),
     "rewardsCenter": MessageLookupByLibrary.simpleMessage("Rewards Center"),
+    "save": MessageLookupByLibrary.simpleMessage("Save"),
     "savingComplaint": MessageLookupByLibrary.simpleMessage("Saving complaint"),
     "selectProblemType": MessageLookupByLibrary.simpleMessage(
       "Select the type of problem",
@@ -298,6 +344,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "submissionDate": MessageLookupByLibrary.simpleMessage("Submission date"),
     "submit": MessageLookupByLibrary.simpleMessage("Submit"),
+    "submitAnyway": MessageLookupByLibrary.simpleMessage("Submit anyway"),
     "submitIssueHint": MessageLookupByLibrary.simpleMessage(
       "Submit an issue to see it listed here.",
     ),
@@ -311,6 +358,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "teamStartedSolving": MessageLookupByLibrary.simpleMessage(
       "Our team has started working on solving the problem",
     ),
+    "thresholdDays": MessageLookupByLibrary.simpleMessage("Threshold (days)"),
     "topCategories": MessageLookupByLibrary.simpleMessage("Top Categories"),
     "totalComplaints": MessageLookupByLibrary.simpleMessage("Total Complaints"),
     "trackComplaintSubtitle": MessageLookupByLibrary.simpleMessage(
@@ -328,6 +376,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Upload a photo of the issue easily",
     ),
     "uploadingPhotos": MessageLookupByLibrary.simpleMessage("Uploading photos"),
+    "urgent": MessageLookupByLibrary.simpleMessage("URGENT"),
     "userIdLabel": MessageLookupByLibrary.simpleMessage("User ID"),
     "userNotLoggedIn": MessageLookupByLibrary.simpleMessage(
       "User not logged in",

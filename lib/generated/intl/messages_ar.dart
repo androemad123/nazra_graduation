@@ -31,6 +31,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "addNewComplaint": MessageLookupByLibrary.simpleMessage("إضافة شكوى جديدة"),
     "addPhotos": MessageLookupByLibrary.simpleMessage("إضافة صور"),
     "ago": MessageLookupByLibrary.simpleMessage("منذ"),
+    "aiAnalysisFailed": MessageLookupByLibrary.simpleMessage(
+      "فشل تحليل الذكاء الاصطناعي. حاول مرة أخرى.",
+    ),
     "aiAnalysisTitle": MessageLookupByLibrary.simpleMessage(
       "تحليل الذكاء الاصطناعي",
     ),
@@ -58,12 +61,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "changePassword": MessageLookupByLibrary.simpleMessage("تغيير كلمة المرور"),
     "clickToAddImages": MessageLookupByLibrary.simpleMessage("اضغط لإضافة صور"),
     "close": MessageLookupByLibrary.simpleMessage("إغلاق"),
+    "clusterItemsCount": MessageLookupByLibrary.simpleMessage("عدد العناصر"),
+    "clusterLabel": MessageLookupByLibrary.simpleMessage("المجموعة"),
     "communities": MessageLookupByLibrary.simpleMessage("المجتمعات"),
     "communityDescLabel": MessageLookupByLibrary.simpleMessage("الوصف"),
     "communityNameLabel": MessageLookupByLibrary.simpleMessage("الاسم"),
     "communityUpdates": MessageLookupByLibrary.simpleMessage("تحديثات المجتمع"),
     "communityVotes": MessageLookupByLibrary.simpleMessage("تصويت المجتمع"),
+    "complaintAgeDays": MessageLookupByLibrary.simpleMessage("العمر (بالأيام)"),
     "complaintDetails": MessageLookupByLibrary.simpleMessage("تفاصيل الشكوى"),
+    "complaintIdLabel": MessageLookupByLibrary.simpleMessage("رقم الشكوى"),
     "complaintManagement": MessageLookupByLibrary.simpleMessage(
       "إدارة الشكاوى",
     ),
@@ -97,6 +104,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "descriptionLabel": MessageLookupByLibrary.simpleMessage("الوصف"),
     "details": MessageLookupByLibrary.simpleMessage("التفاصيل"),
     "dontHaveAccount": MessageLookupByLibrary.simpleMessage("ليس لديك حساب؟ "),
+    "duplicateClusters": MessageLookupByLibrary.simpleMessage(
+      "مجموعات البلاغات المكررة",
+    ),
+    "duplicateDistanceLabel": MessageLookupByLibrary.simpleMessage("المسافة"),
+    "duplicateMarkedSuccess": MessageLookupByLibrary.simpleMessage(
+      "تم تحديد البلاغ كمكرر",
+    ),
+    "duplicatePotentialBody": MessageLookupByLibrary.simpleMessage(
+      "يبدو أن هناك بلاغًا مشابهًا موجودًا بالقرب من هذا الموقع.",
+    ),
+    "duplicatePotentialTitle": MessageLookupByLibrary.simpleMessage(
+      "تم العثور على بلاغ مشابه",
+    ),
+    "duplicateScoreLabel": MessageLookupByLibrary.simpleMessage("نسبة التشابه"),
     "editPersonalInfo": MessageLookupByLibrary.simpleMessage(
       "تعديل المعلومات الشخصية",
     ),
@@ -114,6 +135,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "failedUploadImages": MessageLookupByLibrary.simpleMessage(
       "فشل رفع الصور. حاول مرة أخرى.",
     ),
+    "feedbackInbox": MessageLookupByLibrary.simpleMessage("صندوق الملاحظات"),
+    "feedbackOptionalMessage": MessageLookupByLibrary.simpleMessage(
+      "أضف رسالة اختيارية للمشرف...",
+    ),
+    "feedbackSent": MessageLookupByLibrary.simpleMessage(
+      "تم إرسال الملاحظة للمشرف",
+    ),
     "fixed": MessageLookupByLibrary.simpleMessage("تم الإصلاح"),
     "forgotPassword": MessageLookupByLibrary.simpleMessage("نسيت كلمة المرور؟"),
     "fullNameHint": MessageLookupByLibrary.simpleMessage("الاسم الكامل"),
@@ -121,6 +149,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "high": MessageLookupByLibrary.simpleMessage("عالية"),
     "home": MessageLookupByLibrary.simpleMessage("الرئيسية"),
     "homeSubtitle": MessageLookupByLibrary.simpleMessage("إبلاغك يصنع الفرق"),
+    "imageNotValidIssue": MessageLookupByLibrary.simpleMessage(
+      "قرر الذكاء الاصطناعي أن الصورة ليست مشكلة صالحة.",
+    ),
     "inProgress": MessageLookupByLibrary.simpleMessage("قيد التنفيذ"),
     "isValidIssue": MessageLookupByLibrary.simpleMessage("هل هي مشكلة فعلًا؟"),
     "issueDetails": MessageLookupByLibrary.simpleMessage("تفاصيل المشكلة"),
@@ -134,6 +165,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "issueTitle": MessageLookupByLibrary.simpleMessage("عنوان المشكلة"),
     "issueUnderReview": MessageLookupByLibrary.simpleMessage(
       "المشكلة قيد المراجعة من قبل المجتمع/المسؤول",
+    ),
+    "joinExisting": MessageLookupByLibrary.simpleMessage(
+      "الانضمام للبلاغ الحالي",
     ),
     "justNow": MessageLookupByLibrary.simpleMessage("الآن"),
     "language": MessageLookupByLibrary.simpleMessage("اللغة"),
@@ -154,6 +188,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "logoutFailed": MessageLookupByLibrary.simpleMessage("فشل تسجيل الخروج"),
     "low": MessageLookupByLibrary.simpleMessage("منخفضة"),
     "markAllAsRead": MessageLookupByLibrary.simpleMessage("تحديد الكل كمقروء"),
+    "markAsDuplicate": MessageLookupByLibrary.simpleMessage("تحديد كبلاغ مكرر"),
+    "markResolved": MessageLookupByLibrary.simpleMessage("تحديد كمحلول"),
     "medium": MessageLookupByLibrary.simpleMessage("متوسطة"),
     "metadata": MessageLookupByLibrary.simpleMessage("البيانات"),
     "myComplaints": MessageLookupByLibrary.simpleMessage("شكاواي"),
@@ -172,9 +208,16 @@ class MessageLookup extends MessageLookupByLibrary {
     "noDataAvailable": MessageLookupByLibrary.simpleMessage(
       "لا توجد بيانات متاحة",
     ),
+    "noDuplicateClusters": MessageLookupByLibrary.simpleMessage(
+      "لا توجد مجموعات مكررة بعد",
+    ),
+    "noFeedbackYet": MessageLookupByLibrary.simpleMessage(
+      "لا توجد ملاحظات بعد",
+    ),
     "noFilteredComplaints": MessageLookupByLibrary.simpleMessage(
       "لا توجد شكاوى مطابقة للفلاتر المحددة",
     ),
+    "noMessageProvided": MessageLookupByLibrary.simpleMessage("لا توجد رسالة"),
     "noNotificationsYet": MessageLookupByLibrary.simpleMessage(
       "لا توجد إشعارات بعد",
     ),
@@ -192,6 +235,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "onboardTitle1": MessageLookupByLibrary.simpleMessage("انظر، التقط، حسّن"),
     "onboardTitle2": MessageLookupByLibrary.simpleMessage("أبلغ في ثوانٍ"),
     "onboardTitle3": MessageLookupByLibrary.simpleMessage("تابع التقدم"),
+    "open": MessageLookupByLibrary.simpleMessage("مفتوح"),
     "orContinueWith": MessageLookupByLibrary.simpleMessage("أو تابع باستخدام"),
     "orSignupWith": MessageLookupByLibrary.simpleMessage("أو سجل باستخدام"),
     "passwordHint": MessageLookupByLibrary.simpleMessage("كلمة المرور"),
@@ -239,6 +283,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "progress": MessageLookupByLibrary.simpleMessage("التقدم"),
     "rememberMe": MessageLookupByLibrary.simpleMessage("تذكرني"),
     "removeVote": MessageLookupByLibrary.simpleMessage("إزالة التصويت"),
+    "reportDelay": MessageLookupByLibrary.simpleMessage("الإبلاغ عن تأخير"),
     "reportNumber": MessageLookupByLibrary.simpleMessage("رقم البلاغ"),
     "reportReceived": MessageLookupByLibrary.simpleMessage("تم استلام البلاغ"),
     "reportReviewedClassified": MessageLookupByLibrary.simpleMessage(
@@ -250,6 +295,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "retry": MessageLookupByLibrary.simpleMessage("إعادة المحاولة"),
     "rewards": MessageLookupByLibrary.simpleMessage("المكافآت"),
     "rewardsCenter": MessageLookupByLibrary.simpleMessage("مركز المكافآت"),
+    "save": MessageLookupByLibrary.simpleMessage("حفظ"),
     "savingComplaint": MessageLookupByLibrary.simpleMessage("جارٍ حفظ الشكوى"),
     "selectProblemType": MessageLookupByLibrary.simpleMessage(
       "اختر نوع المشكلة",
@@ -272,6 +318,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "submissionDate": MessageLookupByLibrary.simpleMessage("تاريخ الإرسال"),
     "submit": MessageLookupByLibrary.simpleMessage("إرسال"),
+    "submitAnyway": MessageLookupByLibrary.simpleMessage("إرسال على أي حال"),
     "submitIssueHint": MessageLookupByLibrary.simpleMessage(
       "أرسل بلاغًا ليظهر هنا.",
     ),
@@ -285,6 +332,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "teamStartedSolving": MessageLookupByLibrary.simpleMessage(
       "بدأ فريقنا العمل على حل المشكلة",
     ),
+    "thresholdDays": MessageLookupByLibrary.simpleMessage("الحد (بالأيام)"),
     "topCategories": MessageLookupByLibrary.simpleMessage("أهم الفئات"),
     "totalComplaints": MessageLookupByLibrary.simpleMessage("إجمالي الشكاوى"),
     "trackComplaintSubtitle": MessageLookupByLibrary.simpleMessage(
@@ -300,6 +348,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "ارفع صورة للمشكلة بسهولة",
     ),
     "uploadingPhotos": MessageLookupByLibrary.simpleMessage("جارٍ رفع الصور"),
+    "urgent": MessageLookupByLibrary.simpleMessage("عاجل"),
     "userIdLabel": MessageLookupByLibrary.simpleMessage("معرف المستخدم"),
     "userNotLoggedIn": MessageLookupByLibrary.simpleMessage(
       "المستخدم غير مسجل الدخول",

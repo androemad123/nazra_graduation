@@ -124,14 +124,6 @@ class _AddIssueScreenState extends State<AddIssueScreen> {
       _showValidationSnackBar('Please enter a title');
       return;
     }
-    if (_selectedCategory == null || _selectedCategory!.isEmpty) {
-      _showValidationSnackBar('Please select a category');
-      return;
-    }
-    if (_descriptionController.text.trim().isEmpty) {
-      _showValidationSnackBar('Please enter a description');
-      return;
-    }
     if (_imageFiles.isEmpty) {
       _showValidationSnackBar('Please add at least one photo');
       return;
@@ -162,7 +154,7 @@ class _AddIssueScreenState extends State<AddIssueScreen> {
         communityId: widget.communityId,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
-        category: _selectedCategory!,
+        category: _selectedCategory ?? 'other',
         position: locationState.position,
         address: locationState.address,
         onSuccess: () {
@@ -216,7 +208,7 @@ class _AddIssueScreenState extends State<AddIssueScreen> {
             SizedBox(height: 20.h),
 
             // ── Category ─────────────────────────────────────────────────
-            Text('Category',
+            Text('Category (optional)',
                 style: regularStyle(fontSize: 16, color: Colors.black87)),
             SizedBox(height: 8.h),
             Container(
@@ -227,7 +219,7 @@ class _AddIssueScreenState extends State<AddIssueScreen> {
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
-                  hint: Text('Select Category',
+                  hint: Text('Select Category (optional)',
                       style: regularStyle(
                           fontSize: 16, color: Colors.grey.shade600)),
                   value: _selectedCategory,
@@ -250,7 +242,7 @@ class _AddIssueScreenState extends State<AddIssueScreen> {
             SizedBox(height: 20.h),
 
             // ── Description ───────────────────────────────────────────────
-            Text('Description',
+            Text('Description (optional)',
                 style: regularStyle(fontSize: 16, color: Colors.black87)),
             SizedBox(height: 8.h),
             _fieldBox(
@@ -501,16 +493,33 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
         category: widget.category,
       );
 
-      Map<String, dynamic>? normalizedMl;
-      if (mlResult != null) {
-        final aiData = mlResult['data'];
-        normalizedMl = {
-          'is_issue': mlResult['is_issue'] ?? true,
-          'data': aiData is Map<String, dynamic>
-              ? Map<String, dynamic>.from(aiData)
-              : <String, dynamic>{},
-        };
+      if (mlResult == null) {
+        throw Exception('AI analysis failed. Please try again.');
       }
+
+      final rawIsIssue = mlResult['is_issue'];
+      final bool isIssue;
+      if (rawIsIssue is bool) {
+        isIssue = rawIsIssue;
+      } else if (rawIsIssue is String) {
+        isIssue = rawIsIssue.toLowerCase() == 'true';
+      } else if (rawIsIssue is int) {
+        isIssue = rawIsIssue == 1;
+      } else {
+        isIssue = true;
+      }
+
+      if (!isIssue) {
+        throw Exception('The AI determined this is not a valid issue.');
+      }
+
+      final aiData = mlResult['data'];
+      final normalizedMl = {
+        'is_issue': isIssue,
+        'data': aiData is Map<String, dynamic>
+            ? Map<String, dynamic>.from(aiData)
+            : <String, dynamic>{},
+      };
 
       // ── 3. Publish (Firestore via Bloc) ─────────────────────────────────
       _set(_Step.publishing);

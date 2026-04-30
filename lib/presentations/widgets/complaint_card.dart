@@ -45,15 +45,35 @@ class ComplaintCard extends StatelessWidget {
     }
   }
 
+  String _displayIssueType(Complaint complaint) {
+    final aiIssueType = complaint.aiAnalysis?.issueType?.trim();
+    if (aiIssueType != null && aiIssueType.isNotEmpty) {
+      return aiIssueType
+          .split('_')
+          .where((e) => e.isNotEmpty)
+          .map((word) => '${word[0].toUpperCase()}${word.substring(1)}')
+          .join(' ');
+    }
+
+    final category = complaint.category.trim();
+    if (category.isNotEmpty) return category;
+    return 'Unknown';
+  }
+
   /// 🌳 Get an icon for each category
   IconData _getCategoryIcon(String category) {
     switch (category.toLowerCase()) {
       case 'garbage & waste':
+      case 'garbage_overflow':
         return Icons.delete_outline;
       case 'road & sidewalk damage':
+      case 'pothole':
         return Icons.construction;
       case 'trees & vegetation':
+      case 'dead_tree':
         return Icons.park;
+      case 'dangerous_structure':
+        return Icons.warning_amber_rounded;
       default:
         return Icons.report_problem_outlined;
     }
@@ -79,6 +99,7 @@ class ComplaintCard extends StatelessWidget {
     final priorityColor = _getPriorityColor(complaint.priority);
     final aiConfidenceLabel =
         complaint.aiAnalysis?.confidenceLabel ?? 'UNKNOWN';
+    final issueTypeLabel = _displayIssueType(complaint);
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.w),
@@ -112,7 +133,9 @@ class ComplaintCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Icon(
-                  _getCategoryIcon(complaint.category),
+                  _getCategoryIcon(
+                    complaint.aiAnalysis?.issueType ?? complaint.category,
+                  ),
                   color: ColorManager.brown,
                   size: 22.sp,
                 ),
@@ -124,7 +147,7 @@ class ComplaintCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      complaint.category,
+                      issueTypeLabel,
                       style: semiBoldStyle(
                         fontSize: 16.sp,
                         color: isDarkMode

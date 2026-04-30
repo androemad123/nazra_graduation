@@ -10,6 +10,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import '../../app/bloc/issue/issue_bloc.dart';
 import '../../app/bloc/issue/issue_event.dart';
 import '../../app/models/issue_model.dart';
+import '../../app/repositories/community_repository.dart';
 import '../../app/repositories/issue_repository.dart';
 import '../../generated/l10n.dart';
 import '../complains/widgets/status_tile.dart';
@@ -25,6 +26,7 @@ class IssueDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
     final issueRepo = IssueRepository();
+    final communityRepo = CommunityRepository();
     
     return BlocProvider(
       create: (_) => IssueBloc(repo: issueRepo),
@@ -60,31 +62,6 @@ class IssueDetailsScreen extends StatelessWidget {
             );
 
             final hasVoted = issue.hasUserVoted(currentUserId);
-
-            // Define steps based on issue status
-            final steps = [
-              {
-                'title': S.of(context).statusNew,
-                'date': DateFormat('d MMM, hh:mm a').format(issue.createdAt.toDate()),
-                'description': S.of(context).issueReported,
-              },
-              {
-                'title': S.of(context).statusUnderReview,
-                'date': S.of(context).pendingReview,
-                'description': S.of(context).issueUnderReview,
-              },
-              {
-                'title': S.of(context).statusEscalated,
-                'date': S.of(context).pendingEscalation,
-                'description': S.of(context).issueEscalated,
-              },
-              {
-                'title': S.of(context).statusResolved,
-                'date': S.of(context).pendingResolution,
-                'description': S.of(context).issueResolved,
-              },
-            ];
-
             int currentStep;
             switch (issue.status.toLowerCase()) {
               case 'pending':
@@ -102,6 +79,38 @@ class IssueDetailsScreen extends StatelessWidget {
               default:
                 currentStep = 0;
             }
+            final steps = [
+              {
+                'title': S.of(context).statusNew,
+                'date': DateFormat('d MMM, hh:mm a').format(issue.createdAt.toDate()),
+                'description': S.of(context).issueReported,
+              },
+              {
+                'title': S.of(context).statusUnderReview,
+                'date': _getStatusDate(issue.statusHistory, 'in_review', S.of(context),
+                    isPassed: currentStep >= 1,
+                    subsequentStatuses: ['escalated', 'resolved'],
+                    fallback: issue.updatedAt),
+                'description': S.of(context).issueUnderReview,
+              },
+              {
+                'title': S.of(context).statusEscalated,
+                'date': _getStatusDate(issue.statusHistory, 'escalated', S.of(context),
+                    isPassed: currentStep >= 2,
+                    subsequentStatuses: ['resolved'],
+                    fallback: issue.updatedAt),
+                'description': S.of(context).issueEscalated,
+              },
+              {
+                'title': S.of(context).statusResolved,
+                'date': _getStatusDate(issue.statusHistory, 'resolved', S.of(context),
+                    isPassed: currentStep >= 3,
+                    fallback: issue.updatedAt),
+                'description': S.of(context).issueResolved,
+              },
+            ];
+
+
 
             return Skeletonizer(
               enabled: isLoading,
@@ -200,6 +209,85 @@ class IssueDetailsScreen extends StatelessWidget {
                         );
                       }),
                     ),
+
+                    // 🤖 AI Analysis Card (like complaint admin details)
+                    if (issue.aiAnalysis != null) ...[
+                      SizedBox(height: 16.h),
+                      Container(
+                        padding: EdgeInsets.all(16.w),
+                        decoration: BoxDecoration(
+                          color: Colors.deepPurple.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(16.r),
+                          border: Border.all(
+                            color: Colors.deepPurple.withOpacity(0.2),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.auto_awesome,
+                                  color: Colors.deepPurple,
+                                  size: 20.sp,
+                                ),
+                                SizedBox(width: 8.w),
+                                Text(
+                                  S.of(context).aiAnalysisTitle,
+                                  style: semiBoldStyle(
+                                    fontSize: 16.sp,
+                                    color: Colors.deepPurple,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 12.h),
+                            _buildAiRow(
+                              label: S.of(context).isValidIssue,
+                              value: issue.aiAnalysis!.isIssue
+                                  ? S.of(context).yes
+                                  : S.of(context).no,
+                              valueColor: issue.aiAnalysis!.isIssue
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                            if (issue.aiAnalysis!.confidenceLevel != null) ...[
+                              SizedBox(height: 8.h),
+                              _buildAiRow(
+                                label: S.of(context).confidence,
+                                value: issue.aiAnalysis!.confidenceLevel!,
+                              ),
+                            ],
+                            if (issue.aiAnalysis!.issueType != null) ...[
+                              SizedBox(height: 8.h),
+                              _buildAiRow(
+                                label: S.of(context).category,
+                                value: issue.aiAnalysis!.issueType!,
+                              ),
+                            ],
+                            if (issue.aiAnalysis!.description != null) ...[
+                              SizedBox(height: 8.h),
+                              Text(
+                                S.of(context).aiSummary,
+                                style: semiBoldStyle(
+                                  fontSize: 13.sp,
+                                  color: Colors.deepPurple,
+                                ),
+                              ),
+                              SizedBox(height: 4.h),
+                              Text(
+                                issue.aiAnalysis!.description!,
+                                style: regularStyle(
+                                  fontSize: 14.sp,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
 
                     SizedBox(height: 24.h),
 
@@ -301,6 +389,37 @@ class IssueDetailsScreen extends StatelessWidget {
                         ),
                       ),
                     ],
+
+                    // Owner-only status controls
+                    StreamBuilder(
+                      stream: communityRepo.watchCommunity(issue.communityId),
+                      builder: (context, communitySnap) {
+                        final community = communitySnap.data;
+                        final isOwner = community?.ownerId == currentUserId;
+                        if (!isOwner) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return Column(
+                          children: [
+                            SizedBox(height: 16.h),
+                            AppTextBtn(
+                              buttonText: 'Update Status',
+                              textStyle: semiBoldStyle(
+                                fontSize: 16,
+                                color: ColorManager.white,
+                              ),
+                              backGroundColor: ColorManager.brown,
+                              borderRadius: 12.r,
+                              onPressed: () => _showStatusUpdateDialog(
+                                context: context,
+                                issue: issue,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                     
                     SizedBox(height: 40.h),
                   ],
@@ -335,6 +454,97 @@ class IssueDetailsScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAiRow({
+    required String label,
+    required String value,
+    Color? valueColor,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: regularStyle(fontSize: 14.sp, color: Colors.grey),
+        ),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: semiBoldStyle(
+              fontSize: 14.sp,
+              color: valueColor ?? Colors.black87,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getStatusDate(List<StatusHistoryEntry> history, String status, S s,
+      {bool isPassed = false, List<String> subsequentStatuses = const [], Timestamp? fallback}) {
+    try {
+      final entry = history.firstWhere((e) => e.status == status);
+      return DateFormat('d MMM, hh:mm a').format(entry.timestamp.toDate());
+    } catch (_) {
+      // If the target status is missing but we've moved past it,
+      // find the EARLIEST change that moved us beyond this step.
+      if (subsequentStatuses.isNotEmpty) {
+        final passEntries = history.where((e) => subsequentStatuses.contains(e.status)).toList();
+        if (passEntries.isNotEmpty) {
+          passEntries.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+          return DateFormat('d MMM, hh:mm a').format(passEntries.first.timestamp.toDate());
+        }
+      }
+
+      if (isPassed && fallback != null) {
+        return DateFormat('d MMM, hh:mm a').format(fallback.toDate());
+      }
+      return s.pending;
+    }
+  }
+
+  Future<void> _showStatusUpdateDialog({
+    required BuildContext context,
+    required Issue issue,
+  }) async {
+    final s = S.of(context);
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18.r)),
+        child: Padding(
+          padding: EdgeInsets.all(18.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                s.updateStatus,
+                style: boldStyle(fontSize: 18.sp, color: ColorManager.black),
+              ),
+              SizedBox(height: 14.h),
+              ListTile(
+                title: Text(s.statusEscalated),
+                leading: const Icon(Icons.priority_high_rounded, color: Colors.orange),
+                onTap: () {
+                  context.read<IssueBloc>().add(EscalateIssueRequested(issue.id));
+                  Navigator.pop(ctx);
+                },
+              ),
+              ListTile(
+                title: Text(s.statusResolved),
+                leading: const Icon(Icons.check_circle_outline, color: Colors.green),
+                onTap: () {
+                  context.read<IssueBloc>().add(ResolveIssueRequested(issue.id));
+                  Navigator.pop(ctx);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
