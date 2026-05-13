@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../app/models/complaint_model.dart';
 import '../../../app/repositories/complaint_repository.dart';
+import '../../../app/utils/gov_issue_cluster.dart';
 import '../../../generated/l10n.dart';
 import '../../resources/color_manager.dart';
 import '../../resources/styles_manager.dart';
 import 'admin_complaint_details_screen.dart';
 import 'admin_duplicate_clusters_screen.dart';
 import 'admin_feedback_screen.dart';
+import 'gov_cluster_localizations.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -58,152 +60,210 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Filter Tabs
-          _buildFilterTabs(),
-          
-          // Complaint List
-          Expanded(
-            child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: _repository.watchAllComplaints(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFEEF2F7),
+              Color(0xFFF7F9FC),
+            ],
+          ),
+        ),
+        child: Column(
+          children: [
+            _buildFilterTabs(),
+            Expanded(
+              child: StreamBuilder<List<Map<String, dynamic>>>(
+                stream: _repository.watchAllComplaints(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                if (snapshot.hasError) {
-                  return Center(child: Text('${s.error}: ${snapshot.error}'));
-                }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('${s.error}: ${snapshot.error}'));
+                  }
 
-                final complaintsData = snapshot.data ?? [];
-                
-                if (complaintsData.isEmpty) {
-                  return Center(
-                    child: Text(s.noComplaintsYet),
+                  final complaintsData = snapshot.data ?? [];
+
+                  if (complaintsData.isEmpty) {
+                    return Center(
+                      child: Text(s.noComplaintsYet),
+                    );
+                  }
+
+                  final complaints = complaintsData
+                      .map((data) => Complaint.fromMap(data, data['id'] ?? ''))
+                      .toList();
+
+                  final filteredComplaints = _sortComplaintsByPriority(
+                    _filterComplaints(complaints),
                   );
-                }
 
-                final complaints = complaintsData
-                    .map((data) => Complaint.fromMap(data, data['id'] ?? ''))
-                    .toList();
+                  if (filteredComplaints.isEmpty) {
+                    return Center(
+                      child: Text(s.noFilteredComplaints),
+                    );
+                  }
 
-                // Filter complaints based on selected filter
-                final filteredComplaints = _sortComplaintsByPriority(
-                  _filterComplaints(complaints),
-                );
-
-                if (filteredComplaints.isEmpty) {
-                  return Center(
-                    child: Text(s.noFilteredComplaints),
+                  final groupedComplaints = _groupComplaintsByGovCluster(
+                    filteredComplaints,
                   );
-                }
+                  final groupedEntries =
+                      _orderedGovClusterEntries(groupedComplaints);
 
-                final groupedComplaints = _groupComplaintsByCategory(
-                  filteredComplaints,
-                );
-                final groupedEntries = groupedComplaints.entries.toList()
-                  ..sort((a, b) => b.value.length.compareTo(a.value.length));
+                  return ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
+                    itemCount: groupedEntries.length,
+                    itemBuilder: (context, index) {
+                      final entry = groupedEntries[index];
+                      final clusterCode = entry.key;
+                      final complaintsInCluster = entry.value;
+                      final accent = govClusterAccent(clusterCode);
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: groupedEntries.length,
-                  itemBuilder: (context, index) {
-                    final entry = groupedEntries[index];
-                    final category = entry.key;
-                    final complaintsInCategory = entry.value;
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: const Color(0xFFE7D8C1),
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: accent.withValues(alpha: 0.28),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: accent.withValues(alpha: 0.12),
+                              blurRadius: 14,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x12000000),
-                            blurRadius: 8,
-                            offset: Offset(0, 3),
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            dividerColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
                           ),
-                        ],
-                      ),
-                      child: Theme(
-                        data: Theme.of(context).copyWith(
-                          dividerColor: Colors.transparent,
-                          splashColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                        ),
-                        child: ExpansionTile(
-                          tilePadding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                          leading: Container(
-                            width: 34,
-                            height: 34,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF4E6D3),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.folder_open_outlined,
-                              size: 20,
-                              color: Color(0xFF8B6A42),
-                            ),
-                          ),
-                          title: Text(
-                            category,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: semiBoldStyle(
-                              fontSize: 16,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          subtitle: Text(
-                            '${complaintsInCategory.length} complaint(s)',
-                            style: regularStyle(
-                              fontSize: 12,
-                              color: ColorManager.darkGray,
-                            ),
-                          ),
-                          trailing: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8F8F8),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              '${complaintsInCategory.length}',
-                              style: semiBoldStyle(
-                                fontSize: 12,
-                                color: const Color(0xFF8B6A42),
+                          child: ExpansionTile(
+                            tilePadding:
+                                const EdgeInsets.fromLTRB(14, 10, 14, 10),
+                            childrenPadding:
+                                const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                            leading: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: accent.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                govClusterIcon(clusterCode),
+                                size: 22,
+                                color: accent,
                               ),
                             ),
-                          ),
-                          children: complaintsInCategory
-                              .map(
-                                (complaint) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: _ComplaintCard(
-                                    complaint: complaint,
-                                    compact: true,
-                                    onTap: () => _navigateToDetails(complaint),
+                            title: Text(
+                              govClusterTitle(s, clusterCode),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: semiBoldStyle(
+                                fontSize: 15,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    govClusterSubtitle(s, clusterCode),
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: regularStyle(
+                                      fontSize: 12,
+                                      color: Colors.black54,
+                                    ),
                                   ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF1F5F9),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: const Color(0xFFE2E8F0),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          clusterCode,
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 0.35,
+                                            color: Colors.blueGrey.shade800,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        '${complaintsInCluster.length} ${s.complaints}',
+                                        style: regularStyle(
+                                          fontSize: 12,
+                                          color: ColorManager.darkGray,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            trailing: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 11,
+                                vertical: 7,
+                              ),
+                              decoration: BoxDecoration(
+                                color: accent.withValues(alpha: 0.14),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                '${complaintsInCluster.length}',
+                                style: semiBoldStyle(
+                                  fontSize: 13,
+                                  color: accent,
                                 ),
-                              )
-                              .toList(),
+                              ),
+                            ),
+                            children: complaintsInCluster
+                                .map(
+                                  (complaint) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: _ComplaintCard(
+                                      complaint: complaint,
+                                      compact: true,
+                                      onTap: () => _navigateToDetails(complaint),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -213,7 +273,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     final filters = ['all', 'pending', 'in_progress', 'resolved'];
     
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.72),
+        border: Border(
+          bottom: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+        ),
+      ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -325,29 +392,34 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     return sorted;
   }
 
-  Map<String, List<Complaint>> _groupComplaintsByCategory(
+  Map<String, List<Complaint>> _groupComplaintsByGovCluster(
     List<Complaint> complaints,
   ) {
     final grouped = <String, List<Complaint>>{};
     for (final complaint in complaints) {
-      final key = _displayIssueType(complaint);
-      grouped.putIfAbsent(key, () => <Complaint>[]).add(complaint);
+      final code = resolveGovClusterCode(complaint);
+      grouped.putIfAbsent(code, () => <Complaint>[]).add(complaint);
     }
     return grouped;
   }
 
-  String _displayIssueType(Complaint complaint) {
-    final aiIssueType = complaint.aiAnalysis?.issueType?.trim();
-    if (aiIssueType != null && aiIssueType.isNotEmpty) {
-      return aiIssueType
-          .split('_')
-          .where((e) => e.isNotEmpty)
-          .map((word) => '${word[0].toUpperCase()}${word.substring(1)}')
-          .join(' ');
+  /// Stable department order; within the same cluster, list follows stream order.
+  List<MapEntry<String, List<Complaint>>> _orderedGovClusterEntries(
+    Map<String, List<Complaint>> grouped,
+  ) {
+    final ordered = <MapEntry<String, List<Complaint>>>[];
+    for (final code in GovClusterCode.orderedCodes) {
+      final list = grouped[code];
+      if (list != null && list.isNotEmpty) {
+        ordered.add(MapEntry(code, list));
+      }
     }
-    final category = complaint.category.trim();
-    if (category.isNotEmpty) return category;
-    return 'Unknown';
+    for (final e in grouped.entries) {
+      if (!GovClusterCode.orderedCodes.contains(e.key) && e.value.isNotEmpty) {
+        ordered.add(e);
+      }
+    }
+    return ordered;
   }
 
   void _navigateToDetails(Complaint complaint) {
@@ -545,7 +617,7 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color),
       ),
@@ -590,7 +662,7 @@ class _PriorityBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
