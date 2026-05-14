@@ -30,7 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     context.read<AuthBloc>().add(AuthLogoutRequested());
   }
 
-  Future<_ProfileStats> _loadStats(String userId) async {
+  Future<_ProfileCounts> _loadCounts(String userId) async {
     final complaints = await _complaintRepository.getUserComplaints();
     final communities = await _communityRepository.watchCommunities().first;
 
@@ -38,13 +38,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         .where((c) => c.members.contains(userId))
         .length;
     final complaintsCount = complaints.length;
-    final points = complaints.fold<int>(
-      0,
-      (sum, c) => sum + ((c['likes'] as num?)?.toInt() ?? 0),
-    );
 
-    return _ProfileStats(
-      points: points,
+    return _ProfileCounts(
       communities: joinedCount,
       complaints: complaintsCount,
     );
@@ -104,8 +99,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     // --- Stats Row ---
                     if (!isAdmin && user != null)
-                      FutureBuilder<_ProfileStats>(
-                        future: _loadStats(user.uid),
+                      FutureBuilder<_ProfileCounts>(
+                        key: ValueKey('${user.uid}_${user.rewardPoints}'),
+                        future: _loadCounts(user.uid),
                         builder: (context, snapshot) {
                           if (!snapshot.hasData) {
                             return const Padding(
@@ -114,7 +110,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             );
                           }
 
-                          final stats = snapshot.data!;
+                          final counts = snapshot.data!;
                           return Column(
                             children: [
                               Row(
@@ -122,17 +118,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 children: [
                                   ProfileStatCard(
                                     label: s.points,
-                                    value: '${stats.points}',
+                                    value: '${user.rewardPoints}',
                                     icon: Icons.emoji_events_outlined,
                                   ),
                                   ProfileStatCard(
                                     label: s.communities,
-                                    value: '${stats.communities}',
+                                    value: '${counts.communities}',
                                     icon: Icons.people_alt_outlined,
                                   ),
                                   ProfileStatCard(
                                     label: s.complaints,
-                                    value: '${stats.complaints}',
+                                    value: '${counts.complaints}',
                                     icon: Icons.receipt_long_outlined,
                                   ),
                                 ],
@@ -201,13 +197,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-class _ProfileStats {
-  final int points;
+class _ProfileCounts {
   final int communities;
   final int complaints;
 
-  const _ProfileStats({
-    required this.points,
+  const _ProfileCounts({
     required this.communities,
     required this.complaints,
   });

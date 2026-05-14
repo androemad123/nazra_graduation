@@ -2329,6 +2329,16 @@ class S {
       args: [],
     );
   }
+
+  /// `You earned {points} points for submitting this report!`
+  String pointsEarnedComplaintSubmit(int points) {
+    return Intl.message(
+      'You earned $points points for submitting this report!',
+      name: 'pointsEarnedComplaintSubmit',
+      desc: '',
+      args: [points],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

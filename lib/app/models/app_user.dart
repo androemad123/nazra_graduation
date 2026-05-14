@@ -26,12 +26,16 @@ class AppUser {
   /// The user's role in the system. Defaults to `'user'`.
   final String role;
 
+  /// Total reward points (e.g. from filing complaints). Persisted in Firestore as `rewardPoints`.
+  final int rewardPoints;
+
   AppUser({
     required this.uid,
     required this.email,
     this.displayName,
     this.phoneNumber,
     this.role = 'user',
+    this.rewardPoints = 0,
   });
 
   /// Serialises this [AppUser] to a Firestore-compatible map.
@@ -44,6 +48,7 @@ class AppUser {
       'displayName': displayName,
       'phoneNumber': phoneNumber,
       'role': role,
+      'rewardPoints': rewardPoints,
     };
   }
 
@@ -60,6 +65,7 @@ class AppUser {
       displayName: map['displayName'],
       phoneNumber: map['phoneNumber'],
       role: map['role'] ?? 'user',
+      rewardPoints: (map['rewardPoints'] as num?)?.toInt() ?? 0,
     );
   }
 }

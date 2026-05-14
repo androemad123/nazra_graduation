@@ -440,6 +440,9 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
   }
 
   Future<void> _run() async {
+    if (!mounted) return;
+    final strings = S.of(context);
+    final messenger = ScaffoldMessenger.maybeOf(context);
     try {
       // ── 1. Upload images ────────────────────────────────────────────────
       _set(_Step.uploading);
@@ -449,7 +452,7 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
         category: widget.category,
       );
       if (imageUrls.isEmpty) {
-        throw Exception(S.of(context).failedUploadImages);
+        throw Exception(strings.failedUploadImages);
       }
 
       // ── 2. ML analysis ──────────────────────────────────────────────────
@@ -461,7 +464,7 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
       );
 
       if (mlResult == null) {
-        throw Exception(S.of(context).aiAnalysisFailed);
+        throw Exception(strings.aiAnalysisFailed);
       }
 
       final rawIsIssue = mlResult['is_issue'];
@@ -477,7 +480,7 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
       }
       
       if (!isIssue) {
-        throw Exception(S.of(context).imageNotValidIssue);
+        throw Exception(strings.imageNotValidIssue);
       }
 
       final aiData = mlResult['data'];
@@ -514,7 +517,7 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
 
       // ── 3. Save to Firestore ─────────────────────────────────────────────
       _set(_Step.saving);
-      final complaintId = await widget.complaintRepository.addComplaint(
+      final submitResult = await widget.complaintRepository.addComplaint(
         imageUrls: imageUrls,
         description: widget.description,
         category: widget.category,
@@ -526,8 +529,8 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
         clusterId: clusterId,
       );
 
-      if (complaintId == null) {
-        throw Exception(S.of(context).failedSaveComplaint);
+      if (submitResult == null) {
+        throw Exception(strings.failedSaveComplaint);
       }
 
       // ── Done ─────────────────────────────────────────────────────────────
@@ -537,7 +540,16 @@ class _UploadProgressSheetState extends State<_UploadProgressSheet>
 
       if (mounted) {
         Navigator.of(context).pop(); // close sheet
-        widget.onSuccess();          // pop AddComplaintScreen
+        widget.onSuccess(); // pop AddComplaintScreen
+        if (submitResult.pointsAwarded > 0 && messenger != null) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                strings.pointsEarnedComplaintSubmit(submitResult.pointsAwarded),
+              ),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

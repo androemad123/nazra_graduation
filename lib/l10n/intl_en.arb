@@ -234,5 +234,13 @@
   "govClusterParksTitle": "Parks & Landscaping Department",
   "govClusterParksSubtitle": "Trees, vegetation, and public green spaces.",
   "govClusterMunicipalityTitle": "Municipality / Local District Administration",
-  "govClusterMunicipalitySubtitle": "General civic administration and uncategorized issues."
+  "govClusterMunicipalitySubtitle": "General civic administration and uncategorized issues.",
+  "pointsEarnedComplaintSubmit": "You earned {points} points for submitting this report!",
+  "@pointsEarnedComplaintSubmit": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  }
 }

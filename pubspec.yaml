@@ -49,6 +49,8 @@ dependencies:
   provider: ^6.0.5
   flutter_screenutil: ^5.9.3
   smooth_page_indicator: ^1.2.0+3
+  flutter_launcher_icons: ^0.14.4
+
   flutter_localizations:
     sdk: flutter
   firebase_core: ^4.2.0

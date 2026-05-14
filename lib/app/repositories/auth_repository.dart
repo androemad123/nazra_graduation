@@ -49,29 +49,45 @@ class AuthRepository {
   /// Returns a stream that emits an [AppUser] when a user is signed in,
   /// or null when signed out.
   ///
-  /// Internally maps Firebase's [User] to our [AppUser] by looking up (or creating)
-  /// the user's Firestore profile document on every auth state change.
-  ///
-  /// If the Firestore document does not exist (e.g., first sign-in via a
-  /// different auth provider), a minimal profile is created automatically.
+  /// While signed in, listens to the user's Firestore `users/{uid}` document so
+  /// fields like [AppUser.rewardPoints] stay up to date without re-authentication.
   Stream<AppUser?> authStateChanges() {
-    return _auth.authStateChanges().asyncMap((user) async {
-      if (user == null) return null;
-      final doc = await _firestore.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        return AppUser.fromMap(doc.data()!, user.uid);
-      } else {
-        // Create a minimal profile if the Firestore document is missing
-        final profile = AppUser(
-          uid: user.uid,
-          email: user.email ?? '',
-          displayName: user.displayName ?? '',
-          role: 'user',
-        );
-        await _firestore.collection('users').doc(user.uid).set(profile.toMap());
-        return profile;
+    return _auth.authStateChanges().asyncExpand((User? user) {
+      if (user == null) {
+        return Stream<AppUser?>.value(null);
       }
+      final ref = _firestore.collection('users').doc(user.uid);
+      return Stream.fromFuture(_ensureUserDocument(user, ref)).asyncExpand((_) {
+        return ref.snapshots().map((DocumentSnapshot<Map<String, dynamic>> snap) {
+          final data = snap.data();
+          if (!snap.exists || data == null) {
+            return AppUser(
+              uid: user.uid,
+              email: user.email ?? '',
+              displayName: user.displayName,
+              role: 'user',
+            );
+          }
+          return AppUser.fromMap(data, user.uid);
+        });
+      });
     });
+  }
+
+  Future<void> _ensureUserDocument(
+    User user,
+    DocumentReference<Map<String, dynamic>> ref,
+  ) async {
+    final doc = await ref.get();
+    if (!doc.exists) {
+      final profile = AppUser(
+        uid: user.uid,
+        email: user.email ?? '',
+        displayName: user.displayName ?? '',
+        role: 'user',
+      );
+      await ref.set(profile.toMap());
+    }
   }
 
   /// Creates a new Firebase Auth user with [email] and [password],

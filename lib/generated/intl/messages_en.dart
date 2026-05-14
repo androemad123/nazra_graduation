@@ -20,6 +20,9 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'en';
 
+  static String m0(points) =>
+      "You earned ${points} points for submitting this report!";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "accountCreatedSuccess": MessageLookupByLibrary.simpleMessage(
@@ -280,6 +283,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "pleaseWaitLocationLoad": MessageLookupByLibrary.simpleMessage(
             "Please wait for location to load"),
         "points": MessageLookupByLibrary.simpleMessage("Points"),
+        "pointsEarnedComplaintSubmit": m0,
         "priorityDistribution":
             MessageLookupByLibrary.simpleMessage("Priority Distribution"),
         "priorityHighToLow":

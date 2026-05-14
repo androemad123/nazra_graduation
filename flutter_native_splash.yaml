@@ -1,0 +1,21 @@
+flutter_native_splash:
+  background_image: assets/images/splash_screen-bg.jpg
+  background_image_dark: assets/images/splash_screen-bg.jpg
+
+  image: assets/images/new_Logo.png
+  image_dark: assets/images/new_Logo.png
+
+  android: true
+  ios: true
+  web: false
+
+  android_gravity: center
+  ios_content_mode: center
+
+  android_12:
+    color: "#EFE5D5"         # light mode color
+    color_dark: "#A57E4C"    # dark mode color
+
+    image: assets/images/new_Logo.png
+    image_dark: assets/images/new_Logo.png
+

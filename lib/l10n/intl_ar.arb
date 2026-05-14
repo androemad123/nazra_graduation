@@ -235,5 +235,13 @@
   "govClusterParksTitle": "إدارة الحدائق والمساحات الخضراء بالمحافظة",
   "govClusterParksSubtitle": "الأشجار والتشجير والزروع والصيانة داخل المساحات العامة.",
   "govClusterMunicipalityTitle": "المجلس المحلي / الوحدة المحلية (المدينة أو القرية)",
-  "govClusterMunicipalitySubtitle": "الإدارة البلدية العامة والبلاغات غير المصنفة أو متعددة الجهات."
+  "govClusterMunicipalitySubtitle": "الإدارة البلدية العامة والبلاغات غير المصنفة أو متعددة الجهات.",
+  "pointsEarnedComplaintSubmit": "ربحت {points} نقطةً لإرسال هذا البلاغ!",
+  "@pointsEarnedComplaintSubmit": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  }
 }

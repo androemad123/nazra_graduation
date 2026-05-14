@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../constants/reward_constants.dart';
+
 class DuplicateComplaintMatch {
   final String complaintId;
   final String? clusterId;
@@ -18,6 +20,17 @@ class DuplicateComplaintMatch {
     required this.createdAt,
     required this.issueType,
   });
+}
+
+/// Outcome of [ComplaintRepository.addComplaint], including points granted to the reporter.
+class ComplaintSubmitResult {
+  const ComplaintSubmitResult({
+    required this.complaintId,
+    required this.pointsAwarded,
+  });
+
+  final String complaintId;
+  final int pointsAwarded;
 }
 
 /// Repository for managing citizen complaints in Firestore.
@@ -47,8 +60,8 @@ class ComplaintRepository {
   /// [address]         — Human-readable address resolved from the location.
   /// [mlAnalysisResult]— Optional ML result; affects status ('not_issue') and priority.
   ///
-  /// Returns the Firestore document ID of the newly created complaint, or null on failure.
-  Future<String?> addComplaint({
+  /// Returns submission details including [ComplaintSubmitResult.pointsAwarded], or null on failure.
+  Future<ComplaintSubmitResult?> addComplaint({
     required List<String> imageUrls,
     required String description,
     required String category,
@@ -82,6 +95,9 @@ class ComplaintRepository {
 
       // Status: if AI says it's not an issue, mark accordingly
       final status = aiThinksIssue ? 'pending' : 'not_issue';
+      final pointsAwarded = status == 'pending'
+          ? RewardConstants.pointsPerValidComplaint
+          : RewardConstants.pointsPerNotIssueComplaint;
 
       // Pre-generate the document reference to store the ID inside the document itself
       final docRef = _firestore.collection('complaints').doc();
@@ -103,6 +119,7 @@ class ComplaintRepository {
         'duplicateOf': duplicateOf,
         'duplicateConfidence': duplicateConfidence,
         'clusterId': clusterId ?? complaintId,
+        'pointsAwarded': pointsAwarded,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
         'statusHistory': [
@@ -115,9 +132,22 @@ class ComplaintRepository {
         if (normalizedAnalysis != null) 'aiAnalysis': normalizedAnalysis,
       };
 
-      await docRef.set(complaintData);
+      final batch = _firestore.batch();
+      batch.set(docRef, complaintData);
+      if (pointsAwarded > 0) {
+        final userRef = _firestore.collection('users').doc(user.uid);
+        batch.set(
+          userRef,
+          {'rewardPoints': FieldValue.increment(pointsAwarded)},
+          SetOptions(merge: true),
+        );
+      }
+      await batch.commit();
 
-      return complaintId;
+      return ComplaintSubmitResult(
+        complaintId: complaintId,
+        pointsAwarded: pointsAwarded,
+      );
     } catch (e) {
       print('Error adding complaint to Firestore: $e');
       rethrow;
