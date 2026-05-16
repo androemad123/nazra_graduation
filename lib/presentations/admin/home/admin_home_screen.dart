@@ -213,11 +213,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                         ),
                                       ),
                                       const SizedBox(width: 10),
-                                      Text(
-                                        '${complaintsInCluster.length} ${s.complaints}',
-                                        style: regularStyle(
-                                          fontSize: 12,
-                                          color: ColorManager.darkGray,
+                                      Flexible(
+                                        child: Text(
+                                          '${complaintsInCluster.length} ${s.complaints}',
+                                          style: regularStyle(
+                                            fontSize: 12,
+                                            color: ColorManager.darkGray,
+                                          ),
                                         ),
                                       ),
                                     ],
