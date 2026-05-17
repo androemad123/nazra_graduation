@@ -193,6 +193,21 @@
   "aiAnalysisFailed": "AI analysis failed. Please try again.",
   "imageNotValidIssue": "The AI determined the image is not a valid issue.",
   "reportDelay": "Report delay",
+  "feedbackNotAvailableTitle": "Feedback not available yet",
+  "feedbackWaitMessage": "For {priority} priority reports, delay feedback opens {thresholdDays} days after submission. You can submit feedback in {daysRemaining} day(s).",
+  "@feedbackWaitMessage": {
+    "placeholders": {
+      "priority": {
+        "type": "String"
+      },
+      "thresholdDays": {
+        "type": "int"
+      },
+      "daysRemaining": {
+        "type": "int"
+      }
+    }
+  },
   "feedbackOptionalMessage": "Add an optional message to admin...",
   "feedbackSent": "Feedback sent to admin",
   "feedbackInbox": "Feedback Inbox",

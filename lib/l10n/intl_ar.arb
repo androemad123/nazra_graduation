@@ -194,6 +194,21 @@
   "aiAnalysisFailed": "فشل تحليل الذكاء الاصطناعي. حاول مرة أخرى.",
   "imageNotValidIssue": "قرر الذكاء الاصطناعي أن الصورة ليست مشكلة صالحة.",
   "reportDelay": "الإبلاغ عن تأخير",
+  "feedbackNotAvailableTitle": "الملاحظة غير متاحة بعد",
+  "feedbackWaitMessage": "للبلاغات ذات الأولوية {priority}، يمكن الإبلاغ عن التأخير بعد {thresholdDays} يومًا من التقديم. يمكنك إرسال الملاحظة خلال {daysRemaining} يومًا.",
+  "@feedbackWaitMessage": {
+    "placeholders": {
+      "priority": {
+        "type": "String"
+      },
+      "thresholdDays": {
+        "type": "int"
+      },
+      "daysRemaining": {
+        "type": "int"
+      }
+    }
+  },
   "feedbackOptionalMessage": "أضف رسالة اختيارية للمشرف...",
   "feedbackSent": "تم إرسال الملاحظة للمشرف",
   "feedbackInbox": "صندوق الملاحظات",

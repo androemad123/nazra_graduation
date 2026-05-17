@@ -19,7 +19,7 @@ class ComplaintDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = S.of(context);
     final issueTypeLabel = _displayIssueType(complaint);
-    final canReportDelay = _canReportDelay(complaint);
+    final showFeedbackButton = _shouldShowFeedbackButton(complaint);
     // Define your step data
 
     int currentStep;
@@ -205,9 +205,9 @@ class ComplaintDetailsScreen extends StatelessWidget {
           ],
         ),
       ),
-      floatingActionButton: canReportDelay
+      floatingActionButton: showFeedbackButton
           ? FloatingActionButton.extended(
-              onPressed: () => _showDelayFeedbackDialog(context),
+              onPressed: () => _onReportDelayPressed(context),
               backgroundColor: ColorManager.brown,
               icon: const Icon(Icons.report_gmailerrorred, color: Colors.white),
               label: Text(
@@ -282,13 +282,66 @@ class ComplaintDetailsScreen extends StatelessWidget {
     }
   }
 
-  bool _canReportDelay(Complaint complaint) {
+  bool _shouldShowFeedbackButton(Complaint complaint) {
     final status = complaint.status.toLowerCase();
-    if (status == 'resolved' || status == 'fixed' || status == 'not_issue') {
-      return false;
-    }
+    return status != 'resolved' &&
+        status != 'fixed' &&
+        status != 'not_issue';
+  }
+
+  bool _canReportDelay(Complaint complaint) {
+    if (!_shouldShowFeedbackButton(complaint)) return false;
     final ageDays = DateTime.now().difference(complaint.createdAt.toDate()).inDays;
     return ageDays >= _thresholdDaysByPriority(complaint.priority);
+  }
+
+  int _daysUntilFeedbackAllowed(Complaint complaint) {
+    final ageDays = DateTime.now().difference(complaint.createdAt.toDate()).inDays;
+    final threshold = _thresholdDaysByPriority(complaint.priority);
+    return (threshold - ageDays).clamp(1, threshold);
+  }
+
+  String _displayPriority(String priority) {
+    return priority
+        .trim()
+        .split('_')
+        .where((part) => part.isNotEmpty)
+        .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
+        .join(' ');
+  }
+
+  void _onReportDelayPressed(BuildContext context) {
+    if (_canReportDelay(complaint)) {
+      _showDelayFeedbackDialog(context);
+    } else {
+      _showFeedbackWaitDialog(context);
+    }
+  }
+
+  Future<void> _showFeedbackWaitDialog(BuildContext context) async {
+    final s = S.of(context);
+    final thresholdDays = _thresholdDaysByPriority(complaint.priority);
+    final daysRemaining = _daysUntilFeedbackAllowed(complaint);
+
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(s.feedbackNotAvailableTitle),
+        content: Text(
+          s.feedbackWaitMessage(
+            _displayPriority(complaint.priority),
+            thresholdDays,
+            daysRemaining,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(s.close),
+          ),
+        ],
+      ),
+    );
   }
 
   int _thresholdDaysByPriority(String priority) {
@@ -315,7 +368,9 @@ class ComplaintDetailsScreen extends StatelessWidget {
         content: TextField(
           controller: ctrl,
           maxLines: 4,
+          style: regularStyle(fontSize: 16, color: Colors.black),
           decoration: InputDecoration(
+
             hintText: s.feedbackOptionalMessage,
           ),
         ),
